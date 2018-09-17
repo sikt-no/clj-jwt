@@ -6,7 +6,6 @@
             [clojure.java.io :refer [resource]]
             [clojure.test :refer [deftest testing is]]))
 
-
 (def example-jwt "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")
 
 
@@ -52,14 +51,6 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
     (is (= false (nil? (re-matches clj-jwt/jwtregex example-jwt)))))
   (testing "Regex should not match if not a jwt"
     (is (nil? (re-matches clj-jwt/jwtregex "ab12356723cdb.1235412513")))))
-
-
-(deftest refresh-public-keys!
-  (testing "Repopulates the keystore"
-    (is (with-redefs [clj-jwt/public-keys (atom {})
-                      clj-jwt/fetch-keys  (fn [x] (identity {:foo :bar}))]
-          (not (empty? (do (clj-jwt/refresh-keys "")
-                           @clj-jwt/public-keys)))))))
 
 
 (deftest unsign-jwt

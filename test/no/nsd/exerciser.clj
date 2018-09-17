@@ -44,7 +44,9 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
 (def sample-claims {:sub   "f750bd26-ae85-4808-8f9a-dcc964fc8664"
                     :exp   (time/plus (time/now) (time/minutes 30))})
 
-(def untestable-funs ['no.nsd.clj-jwt/fetch-keys])
+(def untestable-funs ['no.nsd.clj-jwt/fetch-keys
+                      'no.nsd.clj-jwt/resolve-key
+                      'no.nsd.clj-jwt/unsign])
 
 (defn generate-jwt
   [claims key]

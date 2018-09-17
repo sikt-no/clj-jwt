@@ -12,20 +12,21 @@
 
 (def jwtregex  #"^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?$")
 
-(s/def ::sub (s/nilable :no.nsd.authorizer/uuid))
+(s/def ::sub (s/nilable string?))
 
-(s/def ::kid string?)
+(s/def ::kid (s/with-gen (s/nilable string?)
+                         #(s/gen #{"test-key"})))
 
 (s/def ::scope (s/nilable string?))
 
 (s/def ::scopes (s/nilable (s/coll-of string? :kind set?)))
 
-(s/def ::exp (s/and integer?
-                    pos?))
+(s/def ::exp (s/nilable (s/and integer?
+                               pos?)))
 
-(s/def ::kty (s/with-gen (s/and string?
-                                #(= "RSA" %))
-               #(s/gen #{"RSA"})))
+(s/def ::kty (s/with-gen (s/nilable (s/and string?
+                                           #(= "RSA" %)))
+               #(s/gen #{"RSA" nil})))
 
 (s/def ::n (s/with-gen string?
              #(s/gen #{;;valid:
@@ -35,12 +36,15 @@
 
 (s/def ::e string?)
 
-(s/def ::subject (s/nilable (s/keys :req-un [::sub ::exp]
-                                    :opt-un [::scope
-                                             ::scopes])))
+(s/def ::claims (s/nilable (s/keys  :opt-un [::exp
+                                             ::scope
+                                             ::scopes
+                                             ::sub])))
 
 (s/def ::jwt (s/nilable (s/and string?
                                #(re-matches jwtregex %))))
+
+(s/def ::jwt-header (s/keys :req-un [::kid ::kty]))
 
 (s/def ::jwk (s/keys :req-un [::kty ::e ::n ::kid]))
 
@@ -53,12 +57,15 @@
                    #(s/gen #{(resource "jwks.json")
                              (resource "jwks-other.json")})))
 
+(s/def ::jwks-url (s/or :url  :invetica.uri/absolute-uri
+                              :resource ::resource))
+
 
 (s/fdef jwks-edn->public-keys
         :args (s/cat :jwks (s/coll-of ::jwk :type vector?))
         :ret ::key-store)
 
-(defn jwks-edn->public-keys
+(defn- jwks-edn->public-keys
   "Transform vector of json-web-keys to map of kid -> PublicKey pairs."
   [json-web-keys]
   (->> json-web-keys
@@ -70,18 +77,23 @@
 
 
 (s/fdef fetch-keys
-        :args (s/cat :jwks-url (s/or :url      :invetica.uri/absolute-uri                                                                                                                                
-                                     :resource ::resource))
-        :ret  ::key-store)
+        :args (s/cat :jwks-url ::jwks-url)
+        :ret  (s/with-gen ::key-store
+                          #(s/gen #{(->> (resource "jwks.json")
+                                         slurp
+                                         ((fn [jwks-string] (json/read-str jwks-string :key-fn keyword)))
+                                         jwks-edn->public-keys)})))
+                                         
 
-(defn fetch-keys
+(defn- fetch-keys
   "Fetches the jwks from the supplied jwks-url and converts to java Keys.
   Returns a map keyed on key-id where each value is a RSAPublicKey object"
   [jwks-url]
-  (->> jwks-url
-      slurp
-      (#(json/read-str % :key-fn keyword))
-      jwks-edn->public-keys))
+  (try  (->> jwks-url
+             slurp
+             (#(json/read-str % :key-fn keyword))
+             jwks-edn->public-keys)
+        (catch Exception e false)))
 
 
 (def public-keys
@@ -90,24 +102,22 @@
     (atom {}))
 
 
-(defn refresh-keys
-  "Fetches keys and updates key store (atom)"
-  [jwks-url]
-  (reset! public-keys
-          (fetch-keys jwks-url)))
-
+(s/fdef resolve-key
+        :args (s/cat :jwks-url ::jwks-url
+                     :jwt-header ::jwt-header)
+        :ret  ::RSAPublicKey)
 
 (defn resolve-key
   "Returns java.security.PublicKey given jwks-url and :kid in jwt-header.
   If no key is found refreshes"
   [jwks-url jwt-header]
-  (let [key-fn (fn [] (get (deref public-keys) (:kid jwt-header)))]
+  (let [key-fn (fn [] (get @public-keys (:kid jwt-header)))]
     (if-let [key (key-fn)]
       key
-      (do (reset! public-keys (fetch-keys jwks-url))
+      (do (reset! public-keys (or (fetch-keys jwks-url) @public-keys))
           (if-let [key (key-fn)]
             key
-            (throw (ex-info "Could not locate public key corresponding to jwt header's kid."
+            (throw (ex-info (str "Could not locate public key corresponding to jwt header's kid: " (:kid jwt-header))
                             {:type :validation :cause :unknown-key})))))))
 
 
