@@ -1,0 +1,21 @@
+stages:
+  - test
+
+cache:
+  key: always
+  paths:
+  - ./.m2
+
+
+before_script:
+  - cp -R ./.m2 $HOME || true
+
+
+after_script:
+  - cp -R $HOME/.m2 .
+
+
+test:
+  image: clojure:lein-alpine
+  script:
+    - lein test

@@ -1,0 +1,8 @@
+{
+    "keys": [{
+        "kid": "test-key",
+        "kty": "RSA",
+        "e": "AQAB",
+        "n": "0UxySsp7z5_nc119mtuIaYVBYKJYrDuvI_7nK1ynOzkNqj3U81Z5jVzcYfieVMV0XxNyvYQyUivkkhzCQTx_No1cSry7vV8ShR2JVj3HJbs96ag32hjTztdvevAwJXcLwFeoUxoMe6DGjT7tFJbYA_2mo-pzuces2TbjFm_G5TE"
+    }]
+}
