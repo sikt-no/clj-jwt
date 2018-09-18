@@ -1,5 +1,7 @@
 # clj-jwt
 
+![clj-jwt logo](./clj-jwt.png)
+
 A Clojure library to handle validation of JWTs.
 
 The library exposes functions to handle validation of JSON web tokens. It wraps

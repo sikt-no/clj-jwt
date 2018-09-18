@@ -16,6 +16,7 @@ after_script:
 
 
 test:
-  image: clojure:lein-alpine
+  image: clojure:tools-deps-alpine
   script:
-    - lein test
+    - clojure -Atest
+    - clojure -Apropertytest

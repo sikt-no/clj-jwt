@@ -1,4 +1,5 @@
-(ns no.nsd.exerciser
+(ns exerciser
+  (:gen-class)
   (:require [no.nsd.clj-jwt]
             [buddy.core.keys :as keys]
             [buddy.sign.jwt :as jwt]
@@ -109,7 +110,27 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
       summarizer))
 
 
-(exercise-ns 'no.nsd.clj-jwt)
-
-(stest/unstrument)
+(defn -main
+  [& args]
+  (doseq [ns ['no.nsd.clj-jwt]]
+    (let [res       (exercise-ns ns)
+          successes (or (:check-passed res) 0)
+          fails     (+ (or (:check-failed res) 0)
+                       (or (:check-threw res) 0))]
+      (if (pos? fails)
+        (do (when (pos? successes)
+              (println (green (str successes
+                                   " function"
+                                   (when (not= 1 successes) "s")
+                                   " successfully exercised"))))
+            (println (red (str fails
+                               " function"
+                               (when (> fails 1) "s")
+                               " failed\n")))
+            (System/exit 1))
+        (println (green (str successes
+                             " function"
+                             (when (not= 1 successes) "s")
+                             " successfully exercised\n"))))))
+  (System/exit 0))
 
