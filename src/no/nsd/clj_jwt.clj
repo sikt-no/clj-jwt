@@ -7,6 +7,7 @@
             [clojure.java.io :refer [resource]]
             [clojure.spec.gen.alpha :as gen]
             [clojure.spec.alpha :as s]
+            [clojure.tools.logging :as log]
             [invetica.uri :as uri]))
 
 
@@ -89,12 +90,13 @@
   "Fetches the jwks from the supplied jwks-url and converts to java Keys.
   Returns a map keyed on key-id where each value is a RSAPublicKey object"
   [jwks-url]
+  (log/info "Fetching keys from jwks-url" jwks-url)
   (try  (->> jwks-url
              slurp
              (#(json/read-str % :key-fn keyword))
              jwks-edn->public-keys)
-        (catch Exception e false)))
-
+        (catch Exception e (do (log/error "Could not fetch jwks keys")
+                               false))))
 
 (def public-keys
     "Atom to hold the public keys used for signature validation in memory for
@@ -111,6 +113,7 @@
   "Returns java.security.PublicKey given jwks-url and :kid in jwt-header.
   If no key is found refreshes"
   [jwks-url jwt-header]
+  (log/info "Resolving key " jwt-header " from " jwks-url)
   (let [key-fn (fn [] (get @public-keys (:kid jwt-header)))]
     (if-let [key (key-fn)]
       key
