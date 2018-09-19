@@ -1,4 +1,4 @@
-(defproject no.nsd/clj-jwt "0.1.0"
+(defproject no.nsd/clj-jwt "0.2.0-SNAPSHOT"
   :description "A Clojure library to fetch json web keys and validate json web tokens. Wraps Buddy."
   :url "https://gitlab.nsd.no/clojure/clj-jwt"
   :license {:name "Eclipse Public License"
