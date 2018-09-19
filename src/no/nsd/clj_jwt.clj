@@ -41,8 +41,10 @@
                                              ::scopes
                                              ::sub])))
 
-(s/def ::jwt (s/nilable (s/and string?
-                               #(re-matches jwtregex %))))
+(s/def ::jwt (s/nilable (s/with-gen (s/and string?
+                                           #(re-matches jwtregex %))
+                          #(s/gen #{(jwt/sign (gen/generate (s/gen ::claims))
+                                              "secret")}))))
 
 (s/def ::jwt-header (s/keys :req-un [::kid ::kty]))
 
@@ -77,13 +79,13 @@
 
 
 (s/fdef fetch-keys
-        :args (s/cat :jwks-url ::jwks-url)
-        :ret  (s/with-gen ::key-store
-                          #(s/gen #{(->> (resource "jwks.json")
-                                         slurp
-                                         ((fn [jwks-string] (json/read-str jwks-string :key-fn keyword)))
-                                         jwks-edn->public-keys)})))
-                                         
+  :args (s/cat :jwks-url ::jwks-url)
+  :ret  (s/with-gen ::key-store
+          #(s/gen #{(->> (resource "jwks.json")
+                         slurp
+                         ((fn [jwks-string] (json/read-str jwks-string :key-fn keyword)))
+                         jwks-edn->public-keys)})))
+
 
 (defn- fetch-keys
   "Fetches the jwks from the supplied jwks-url and converts to java Keys.
@@ -125,7 +127,6 @@
   "Given token, jwks-url, and optionally opts validates and returns the claims
   of the given json web token. Opts are the same as buddy-sign.jwt/unsign."
   ([token jwks-url]
-   (unsign token jwks-url {})) 
+   (unsign token jwks-url {}))
   ([token jwks-url opts]
    (jwt/unsign token (partial resolve-key jwks-url) (merge {:alg :rs256} opts))))
-
