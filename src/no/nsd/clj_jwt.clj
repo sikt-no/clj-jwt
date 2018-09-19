@@ -122,7 +122,8 @@
   (let [key-fn (fn [] (get @public-keys (:kid jwt-header)))]
     (if-let [key (key-fn)]
       key
-      (do (reset! public-keys (or (fetch-keys jwks-url) @public-keys))
+      (do (log/info "Retry resolve key " jwt-header " from " jwks-url) 
+          (reset! public-keys (or (fetch-keys jwks-url) @public-keys))
           (if-let [key (key-fn)]
             key
             (throw (ex-info (str "Could not locate public key corresponding to jwt header's kid: " (:kid jwt-header))
