@@ -37,10 +37,10 @@
 
 (s/def ::e string?)
 
-(s/def ::claims (s/nilable (s/keys  :opt-un [::exp
-                                             ::scope
-                                             ::scopes
-                                             ::sub])))
+(s/def ::claims (s/keys :opt-un [::exp
+                                 ::scope
+                                 ::scopes
+                                 ::sub]))
 
 (s/def ::jwt (s/nilable (s/with-gen (s/and string?
                                            #(re-matches jwtregex %))
@@ -57,12 +57,15 @@
                              ::RSAPublicKey))
 
 (s/def ::resource (s/with-gen #(instance? java.net.URL %)
-                   #(s/gen #{(resource "jwks.json")
-                             (resource "jwks-other.json")})))
+                    ;; Always use local resources to avoid spamming actual servers
+                    #(s/gen #{(resource "jwks.json")
+                              (resource "jwks-other.json")})))
 
-(s/def ::jwks-url (s/or :url  :invetica.uri/absolute-uri
-                              :resource ::resource))
-
+(s/def ::jwks-url (s/with-gen (s/or :url  :invetica.uri/absolute-uri
+                                          :resource ::resource)
+                              ;; Always use local resources to avoid spamming actual servers
+                              #(s/gen #{(resource "jwks.json")
+                                        (resource "jwks-other.json")})))
 
 (s/fdef jwks-edn->public-keys
         :args (s/cat :jwks (s/coll-of ::jwk :type vector?))
@@ -107,8 +110,8 @@
 
 
 (s/fdef resolve-key
-        :args (s/cat :jwks-url ::jwks-url
-                     :jwt-header ::jwt-header)
+        :args (s/cat :jwks-url    ::jwks-url
+                     :jwt-header  ::jwt-header)
         :ret  ::RSAPublicKey)
 
 (defn resolve-key
@@ -125,6 +128,11 @@
             (throw (ex-info (str "Could not locate public key corresponding to jwt header's kid: " (:kid jwt-header))
                             {:type :validation :cause :unknown-key})))))))
 
+
+(s/fdef unsign
+        :args (s/cat :token ::jwt
+                     :jwks-url ::jwks-url)
+        :ret  ::claims)
 
 (defn unsign
   "Given token, jwks-url, and optionally opts validates and returns the claims
