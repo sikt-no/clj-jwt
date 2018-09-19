@@ -5,7 +5,7 @@
 A Clojure library to handle validation of JWTs.
 
 ```clojure
-[no.nsd/clj-jwt "0.1.0"]
+[no.nsd/clj-jwt "0.2.0"]
 ```
 
 The library exposes functions to handle validation of JSON web tokens. It wraps
