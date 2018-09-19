@@ -18,5 +18,5 @@
                                         clojure-term-colors    {:mvn/version "0.1.0"}}
                           :extra-paths ["test" "test-resources"]
                           :main-opts   ["-m exerciser"]}
-            :jar    {:extra-deps    {luchiniatwork/cambada {:mvn/version "1.0.0"}}
-                     :main-opts ["-m" "cambada.jar"]}}}
+           :jar {:extra-deps {luchiniatwork/cambada {:mvn/version "1.0.0"}}
+                 :main-opts  ["-m" "cambada.jar"]}}}
