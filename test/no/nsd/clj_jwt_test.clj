@@ -3,8 +3,15 @@
             [buddy.sign.jwt :as buddy-jwt]
             [buddy.core.keys.jwk.proto :as buddy-jwk]
             [buddy.core.keys :as buddy-keys]
+            [taoensso.timbre :as timbre]
+            [taoensso.timbre.tools.logging :as cljlog]
             [clojure.java.io :refer [resource]]
             [clojure.test :refer [deftest testing is]]))
+
+;; Effectively turn of logging in test
+(def timbre-config  {:level :fatal})
+(timbre/merge-config! timbre-config)
+(cljlog/use-timbre)
 
 (def example-jwt "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")
 

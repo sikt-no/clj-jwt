@@ -9,8 +9,14 @@
             [clojure.spec.alpha :as s]
             [clojure.spec.test.alpha :as stest]
             [clojure.spec.gen.alpha :as gen]
+            [taoensso.timbre :as timbre]
+            [taoensso.timbre.tools.logging :as cljlog]
             [clojure.term.colors :refer :all]))
 
+;; Effectively turn of logging in exercises
+(def timbre-config  {:level :fatal})
+(timbre/merge-config! timbre-config)
+(cljlog/use-timbre)
 
 (def private-rsa-key
  "-----BEGIN RSA PRIVATE KEY-----
@@ -45,9 +51,7 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
 (def sample-claims {:sub   "f750bd26-ae85-4808-8f9a-dcc964fc8664"
                     :exp   (time/plus (time/now) (time/minutes 30))})
 
-(def untestable-funs ['no.nsd.clj-jwt/fetch-keys
-                      'no.nsd.clj-jwt/resolve-key
-                      'no.nsd.clj-jwt/unsign])
+(def untestable-funs ['no.nsd.clj-jwt/fetch-keys])
 
 (defn generate-jwt
   [claims key]
