@@ -133,14 +133,14 @@
 
 
 (s/fdef unsign
-        :args (s/cat :token ::jwt
-                     :jwks-url ::jwks-url)
+        :args (s/cat :jwks-url ::jwks-url
+                     :token    ::jwt)                    
         :ret  ::claims)
 
 (defn unsign
-  "Given token, jwks-url, and optionally opts validates and returns the claims
+  "Given jwks-url, token, and optionally opts validates and returns the claims
   of the given json web token. Opts are the same as buddy-sign.jwt/unsign."
-  ([token jwks-url]
-   (unsign token jwks-url {}))
-  ([token jwks-url opts]
+  ([jwks-url token]
+   (unsign jwks-url token {}))
+  ([jwks-url token opts]
    (jwt/unsign token (partial resolve-key jwks-url) (merge {:alg :rs256} opts))))

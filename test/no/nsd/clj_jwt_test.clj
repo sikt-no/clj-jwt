@@ -63,27 +63,27 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
 (deftest unsign-jwt
   (testing "Unsigns jwt and returns payload"
     (is (= (with-redefs [clj-jwt/public-keys (atom {"test-key" ec-pubkey})]
-             (clj-jwt/unsign signed-jwt (resource "jwks.json")))
+             (clj-jwt/unsign (resource "jwks.json") signed-jwt))
            jwt-payload)))
 
   (testing "Fails if key referenced in jwt header is not found"
     (is (thrown? Exception
                  (with-redefs [clj-jwt/public-keys (atom {})]
-                  (clj-jwt/unsign signed-jwt (resource "jwks-other.json")))))))
+                  (clj-jwt/unsign (resource "jwks-other.json") signed-jwt))))))
 
 
 (deftest verify-jwt
   (testing "Unsigns jwt and returns payload"
     (is (= (with-redefs [clj-jwt/public-keys (atom {"test-key" ec-pubkey})]
-             (clj-jwt/unsign signed-jwt (resource "jwks.json")))
+             (clj-jwt/unsign (resource "jwks.json") signed-jwt))
            jwt-payload)))
 
   (testing "Refetches keys if no matching keys found"
     (is (= (with-redefs [clj-jwt/public-keys  (atom {})]
-             (clj-jwt/unsign signed-jwt (resource "jwks.json")))
+             (clj-jwt/unsign (resource "jwks.json") signed-jwt))
            jwt-payload)))
 
   (testing "Fails if key referenced in jwt head is not found"
     (is (thrown? Exception
                  (with-redefs [clj-jwt/public-keys      (atom {})]
-                  (clj-jwt/unsign signed-jwt (resource "jwks-other.json")))))))
+                  (clj-jwt/unsign (resource "jwks-other.json") signed-jwt))))))

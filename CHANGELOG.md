@@ -1,6 +1,14 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
+## 0.3.0 - 2018-09-20
+### Changed
+- Swapped argument order for unsign function to make partial application easier
+
+## 0.2.1 - 2018-09-20
+### Added
+- Error logging for failing key resolve
+
 ## 0.2.0 - 2018-09-19
 ### Added
 - Added specs for unsign and generator for ::jwt
