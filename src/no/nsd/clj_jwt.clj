@@ -118,7 +118,7 @@
   "Returns java.security.PublicKey given jwks-url and :kid in jwt-header.
   If no key is found refreshes"
   [jwks-url jwt-header]
-  (log/info "Resolving key " jwt-header " from " jwks-url)
+  (log/debug "Resolving key " jwt-header " from " jwks-url)
   (let [key-fn (fn [] (get @public-keys (:kid jwt-header)))]
     (if-let [key (key-fn)]
       key
@@ -126,8 +126,10 @@
           (reset! public-keys (or (fetch-keys jwks-url) @public-keys))
           (if-let [key (key-fn)]
             key
-            (throw (ex-info (str "Could not locate public key corresponding to jwt header's kid: " (:kid jwt-header))
-                            {:type :validation :cause :unknown-key})))))))
+            (do
+              (log/error "Could not locate public key corresponding to jwt header's kid: " (:kid jwt-header))
+              (throw (ex-info (str "Could not locate public key corresponding to jwt header's kid: " (:kid jwt-header))
+                              {:type :validation :cause :unknown-key}))))))))
 
 
 (s/fdef unsign
