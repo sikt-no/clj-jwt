@@ -118,11 +118,11 @@
   "Returns java.security.PublicKey given jwks-url and :kid in jwt-header.
   If no key is found refreshes"
   [jwks-url jwt-header]
-  (log/debug "Resolving key " jwt-header " from " jwks-url)
+  (log/debug "Resolving key" jwt-header "from jwk cache for" jwks-url)
   (let [key-fn (fn [] (get @public-keys (:kid jwt-header)))]
     (if-let [key (key-fn)]
       key
-      (do (log/info "Retry resolve key " jwt-header " from " jwks-url) 
+      (do (log/info "Fetch and resolve key" jwt-header "from" jwks-url) 
           (reset! public-keys (or (fetch-keys jwks-url) @public-keys))
           (if-let [key (key-fn)]
             key
