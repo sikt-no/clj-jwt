@@ -122,19 +122,19 @@
   (let [key-fn (fn [] (get @public-keys (:kid jwt-header)))]
     (if-let [key (key-fn)]
       key
-      (do (log/info "Fetch and resolve key" jwt-header "from" jwks-url) 
+      (do (log/info "Fetch and resolve key" jwt-header "from" jwks-url)
           (reset! public-keys (or (fetch-keys jwks-url) @public-keys))
           (if-let [key (key-fn)]
             key
             (do
-              (log/error "Could not locate public key corresponding to jwt header's kid: " (:kid jwt-header))
+              (log/info "Could not locate public key corresponding to jwt header's kid: " (:kid jwt-header))
               (throw (ex-info (str "Could not locate public key corresponding to jwt header's kid: " (:kid jwt-header))
                               {:type :validation :cause :unknown-key}))))))))
 
 
 (s/fdef unsign
         :args (s/cat :jwks-url ::jwks-url
-                     :token    ::jwt)                    
+                     :token    ::jwt)
         :ret  ::claims)
 
 (defn unsign
