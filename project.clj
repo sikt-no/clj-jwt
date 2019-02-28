@@ -6,7 +6,6 @@
   :middleware [lein-tools-deps.plugin/resolve-dependencies-with-deps-edn]
   :plugins [[lein-tools-deps "0.4.1"]]
   :lein-tools-deps/config {:config-files [:project]}
-  :repositories [["snapshots" {:url "https://nexus.nsd.no/repository/maven-snapshots/"
-                               :creds :gpg}]
-                 ["releases"  {:url "https://nexus.nsd.no/repository/maven-releases/"
-                               :creds :gpg}]])
+  :repositories [["central"   {:url "https://nexus.nsd.no/repository/nsd-maven-public"}]
+                 ["snapshots" {:url "https://nexus.nsd.no/repository/nsd-maven-public-snapshots"}]
+                 ["releases"  {:url "https://nexus.nsd.no/repository/nsd-maven-public-releases"}]])
