@@ -18,5 +18,5 @@ after_script:
 test:
   image: clojure:tools-deps-alpine
   script:
-    - clojure -Atest
-    - clojure -Apropertytest
+    - clojure -Adev:test
+    - clojure -Adev:propertytest
