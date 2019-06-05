@@ -51,8 +51,6 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
 (def signed-jwt           (buddy-jwt/sign jwt-payload ec-privkey {:alg :rs256 :header {:kid "test-key"}}))
 (def signed-jwt-wrongkey  (buddy-jwt/sign jwt-payload ec-privkey {:alg :rs256 :header {:kid "wrong-key"}}))
 
-
-
 (deftest jwt-regex
   (testing "Regex should match valid jwt"
     (is (= false (nil? (re-matches clj-jwt/jwtregex example-jwt)))))
@@ -62,28 +60,28 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
 
 (deftest unsign-jwt
   (testing "Unsigns jwt and returns payload"
-    (is (= (with-redefs [clj-jwt/public-keys (atom {"test-key" ec-pubkey})]
+    (is (= (with-redefs [clj-jwt/keystore (atom {"test-key" {:public-key ec-pubkey}})]
              (clj-jwt/unsign (resource "jwks.json") signed-jwt))
            jwt-payload)))
 
   (testing "Fails if key referenced in jwt header is not found"
     (is (thrown? Exception
-                 (with-redefs [clj-jwt/public-keys (atom {})]
+                 (with-redefs [clj-jwt/keystore (atom {})]
                   (clj-jwt/unsign (resource "jwks-other.json") signed-jwt))))))
 
 
 (deftest verify-jwt
   (testing "Unsigns jwt and returns payload"
-    (is (= (with-redefs [clj-jwt/public-keys (atom {"test-key" ec-pubkey})]
+    (is (= (with-redefs [clj-jwt/keystore (atom {"test-key" {:public-key ec-pubkey}})]
              (clj-jwt/unsign (resource "jwks.json") signed-jwt))
            jwt-payload)))
 
   (testing "Refetches keys if no matching keys found"
-    (is (= (with-redefs [clj-jwt/public-keys  (atom {})]
+    (is (= (with-redefs [clj-jwt/keystore  (atom {})]
              (clj-jwt/unsign (resource "jwks.json") signed-jwt))
            jwt-payload)))
 
   (testing "Fails if key referenced in jwt head is not found"
     (is (thrown? Exception
-                 (with-redefs [clj-jwt/public-keys      (atom {})]
+                 (with-redefs [clj-jwt/keystore (atom {})]
                   (clj-jwt/unsign (resource "jwks-other.json") signed-jwt))))))

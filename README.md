@@ -2,18 +2,19 @@
 
 ![clj-jwt logo](./clj-jwt.png)
 
-A Clojure library to handle validation of JWTs.
+A Clojure library to handle validation of JWTs and signing claims using JSON Web Keys.
 
 ```clojure
-[no.nsd/clj-jwt "0.3.2"]
+[no.nsd/clj-jwt "0.4.0-SNAPSHOT"]
 ```
 
-The library exposes functions to handle validation of JSON web tokens. It wraps
-some of [Buddy's](https://funcool.github.io/buddy-sign/latest/) jwt signature
-handling functions and uses a JWKS endpoint to fetch the public keys to use for
-signature validation.
+clj-jwt wraps some of [Buddy's](https://funcool.github.io/buddy-sign/latest/) functions for validating JWTs and signing claims.
+It uses a JWKS endpoint to fetch the public or private key to use for validation or signing respectively.
+By using this library you can abstract away key handling as the library will automatically fetch new keys as the JWK server issues new keys.
 
 ## Usage
+
+### Validating JWTs
 
 You can use the `unsign` function which wraps buddy-sign's own unsign function:
 
@@ -23,7 +24,7 @@ You can use the `unsign` function which wraps buddy-sign's own unsign function:
 (clj-jwt/unsign "https://sso-stage.nsd.no/.well-known/jwks.json" "<your-token-here>")
 ```
 
-Or you can use the `resolve-key` function with the  jws backend from
+Or you can use the `resolve-public-key` function with the  jws backend from
 buddy-auth:
 
 ```clojure
@@ -31,11 +32,22 @@ buddy-auth:
 (require '[no.nsd.clj-jwt :as clj-jwt])
 
 (def auth-backend
-  (backends/jws {:secret (partial clj-jwt/resolve-key "https://sso-stage.nsd.no/.well-known/jwks.json")
+  (backends/jws {:secret (partial clj-jwt/resolve-public-key "https://sso-stage.nsd.no/.well-known/jwks.json")
                  :token-name "Bearer"
                  :authfn (fn [claims] claims)
                  :on-error (fn [request err] nil)
                  :options {:alg :rs256}}))
+```
+
+### Signing claims (creating tokens)
+
+You can sign your own tokens if your JSON web token contains a private key component.
+The `sign` function expects a jwks URL/path, a key id, the claims to sign, and optionally options to the buddy sign function.
+
+```clojure
+(require '[no.nsd.clj-jwt :as clj-jwt])
+
+(clj-jwt/sign "my-local-jwks.json" "my-jwk-kid" {:sub "some-user"})
 ```
 
 ## Development
@@ -46,10 +58,10 @@ installed you can use the `clj` command in place of `clojure`.
 
 ```bash
 # Run regular old Clojure tests
-clojure -Atest
+clojure -Adev:test
 
 # Exercise clojure specs
-clojure -Apropertytest
+clojure -Adev:propertytest
 ```
 
 You can start a REPL in the project to evaluate code. If you need an nREPL configure
@@ -63,7 +75,7 @@ a global tools deps alias in `~/.clojure/deps.edn`:
 Then run:
 
 ```bash
-clojure -AnREPL
+clojure -Adev:nREPL
 ```
 
 ### Installing 'work in progress' locally
@@ -154,3 +166,4 @@ Copyright © 2018 NSD - NORSK SENTER FOR FORSKNINGSDATA AS
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
+    
