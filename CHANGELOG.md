@@ -12,6 +12,14 @@ All notable changes to this project will be documented in this file. This change
 ### Changed
 - resolve-key funtion made private as it is now used by resolve-public-key and resolve-private-key
 
+## [v0.3.2] - 2018-11-16
+### Changed
+- Changed log level from error to info for public key lookup error
+
+## [v0.3.1] - 2018-11-08
+### Changed
+- Improved logging
+
 ## [v0.3.0] - 2018-09-20
 ### Changed
 - Swapped argument order for unsign function to make partial application easier
@@ -32,7 +40,9 @@ All notable changes to this project will be documented in this file. This change
 - Function `unsign` which tries to validate a jwt given a jwks URL and a jwt.
 
 [Unreleased]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.0...HEAD
-[v0.3.0]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.3.0...v0.4.0
+[v0.4.0]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.3.2...v0.4.0
+[v0.3.2]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.3.1...v0.3.2
+[v0.3.1]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.3.0...v0.3.1
 [v0.3.0]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.2.1...v0.3.0
 [v0.2.1]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.1.0...v0.2.0
