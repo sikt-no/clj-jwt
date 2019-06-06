@@ -56,7 +56,13 @@ Ensure you have [Clojure installed](https://clojure.org/guides/getting_started).
 Then clone project and run Clojure Tools Deps targets.  If you have rlwrap
 installed you can use the `clj` command in place of `clojure`.
 
+Note that you always need to include the `dev` alias when developing as this alias provides all the necessary libraries.
+Refer to your editors documentation about how to connect or start a repl integrated with the editor.
+
 ```bash
+# Run a development clojure repl
+clojure -Adev
+
 # Run regular old Clojure tests
 clojure -Adev:test
 
