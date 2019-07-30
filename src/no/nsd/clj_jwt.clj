@@ -116,10 +116,11 @@
         (catch Exception e (do (log/error "Could not fetch jwks keys")
                                false))))
 
-(def keystore
-  "Atom to hold the public and private keys used for signature validation in memory for
-  caching purposes. The atom holds a clojure map with kid -> key pairs. Each key is a
-  clojure map containing a :public-key and optionally a :private-key."
+
+;; Atom to hold the public and private keys used for signature validation in memory for
+;; caching purposes. The atom holds a clojure map with kid -> key pairs. Each key is a
+;; clojure map containing a :public-key and optionally a :private-key.
+(defonce keystore
   (atom {}))
 
 

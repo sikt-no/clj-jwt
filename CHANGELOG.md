@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [v0.4.1] - 2019-07-30
+### Changed
+- Use defonce to define keystore atom to prevent accidental redefinitions in upstream project's development
+- Update dependencies to latest feature/patch versions
+
 ## [v0.4.0] - 2019-06-06
 ### Added
 - New sign function to sign claims and generate JWTs based on private key in JWK
@@ -39,7 +44,8 @@ All notable changes to this project will be documented in this file. This change
 - Function `resolve-key` that fetches jwks keys and returns a PublicKey given the kid in the jwt header.
 - Function `unsign` which tries to validate a jwt given a jwks URL and a jwt.
 
-[Unreleased]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.0...HEAD
+[Unreleased]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.1...HEAD
+[v0.4.1]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.0...v0.4.1
 [v0.4.0]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.3.2...v0.4.0
 [v0.3.2]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.3.1...v0.3.2
 [v0.3.1]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.3.0...v0.3.1

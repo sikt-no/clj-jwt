@@ -5,7 +5,7 @@
 A Clojure library to handle validation of JWTs and signing claims using JSON Web Keys.
 
 ```clojure
-[no.nsd/clj-jwt "0.4.0"]
+[no.nsd/clj-jwt "0.4.1"]
 ```
 
 clj-jwt wraps some of [Buddy's](https://funcool.github.io/buddy-sign/latest/) functions for validating JWTs and signing claims.
@@ -70,19 +70,8 @@ clojure -Adev:test
 clojure -Adev:propertytest
 ```
 
-You can start a REPL in the project to evaluate code. If you need an nREPL configure
-a global tools deps alias in `~/.clojure/deps.edn`:
-
-```clojure
-{:aliases {:nREPL {:extra-deps  {nrepl/nrepl {:mvn/version "0.4.5"}}
-                   :main-opts   ["-m" "nrepl.cmdline"]}}}
-```
-
-Then run:
-
-```bash
-clojure -Adev:nREPL
-```
+You can start a REPL in the project to evaluate code.
+For editor integration see [clojure guides - editor integrations](https://gitlab.nsd.no/clojure/guides/blob/master/editor.md).
 
 ### Installing 'work in progress' locally
 
@@ -159,6 +148,7 @@ lein deploy
 
 ### Finally commit, push and tag release
 
+Add a new changelog entry in the `CHANGELOG.md` file.
 Commit the project.clj version bump, push it to the Gitlab repository, and tag
 it. The tag message should describe the changes made, and the release notes can
 link to the release in Nexus.
