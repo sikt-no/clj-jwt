@@ -191,7 +191,7 @@
   For a jwt without scope, an empty set will be returned."
   [claims]
   (assert (map? claims) "claims must be a map!")
-  (if-let [claims (get claims :scope)]
+  (if-let [claims (not-empty (get claims :scope))]
     (do
       (assert (string? claims) ":scope in claims must be a string!")
       (into (sorted-set) (str/split claims #"\s+")))

@@ -74,6 +74,9 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
                  (clj-jwt/scopes nil))))
 
   (testing "Missing scope gives empty set"
+    (is (= #{} (->> (buddy-jwt/sign {:sub "jalla" :scope ""} ec-privkey {:alg :rs256 :header {:kid "test-key"}})
+                    (clj-jwt/unsign (resource "jwks.json"))
+                    (clj-jwt/scopes))))
     (is (= #{} (->> (buddy-jwt/sign {:sub "jalla"} ec-privkey {:alg :rs256 :header {:kid "test-key"}})
                     (clj-jwt/unsign (resource "jwks.json"))
                     (clj-jwt/scopes)))))
