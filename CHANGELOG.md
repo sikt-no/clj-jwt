@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [v0.4.3] - 2020-01-07
+### Added
+- Add scopes function to extract jwt scopes from claims
+
 ## [v0.4.2] - 2020-01-07
 ### Changed
 - Support multiple jwks endpoints is supported #3
