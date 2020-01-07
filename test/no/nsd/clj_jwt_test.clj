@@ -47,7 +47,8 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
 
 (def ec-privkey           (buddy-keys/str->private-key private-rsa-key "secret"))
 (def ec-pubkey            (buddy-keys/str->public-key public-rsa-key))
-(def jwt-payload          {:sub "asd"})
+(def jwt-payload          {:sub "asd"
+                           :scope "a:read  a:write\nb:read  "})
 (def signed-jwt           (buddy-jwt/sign jwt-payload ec-privkey {:alg :rs256 :header {:kid "test-key"}}))
 (def signed-jwt-wrongkey  (buddy-jwt/sign jwt-payload ec-privkey {:alg :rs256 :header {:kid "wrong-key"}}))
 
@@ -66,6 +67,21 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
   (testing "Fails if key referenced in jwt header is not found"
     (is (thrown? Exception
                  (clj-jwt/unsign (resource "jwks-other.json") signed-jwt)))))
+
+(deftest extract-scope
+  (testing "Nil input fails early"
+    (is (thrown? AssertionError
+                 (clj-jwt/scopes nil))))
+
+  (testing "Missing scope gives empty set"
+    (is (= #{} (->> (buddy-jwt/sign {:sub "jalla"} ec-privkey {:alg :rs256 :header {:kid "test-key"}})
+                    (clj-jwt/unsign (resource "jwks.json"))
+                    (clj-jwt/scopes)))))
+
+  (testing "Scope extraction"
+    (is (= (-> (clj-jwt/unsign (resource "jwks.json") signed-jwt)
+               (clj-jwt/scopes))
+           #{"a:read" "b:read" "a:write"}))))
 
 (deftest verify-jwt
   (testing "Unsigns jwt and returns payload"

@@ -185,6 +185,18 @@
      (assert (s/valid? ::jwt token) "token must conform to ::jwt")
      (jwt/unsign token (partial resolve-public-key jwks-url) (merge {:alg :rs256} opts)))))
 
+(defn scopes
+  "Given the claims from unsign returns the jwt scope as a set of strings.
+
+  For a jwt without scope, an empty set will be returned."
+  [claims]
+  (assert (map? claims) "claims must be a map!")
+  (if-let [claims (get claims :scope)]
+    (do
+      (assert (string? claims) ":scope in claims must be a string!")
+      (into (sorted-set) (str/split claims #"\s+")))
+    #{}))
+
 (s/fdef sign
   :args (s/cat :jwks-url ::jwks-url
                :kid      ::kid
