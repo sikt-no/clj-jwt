@@ -54,7 +54,8 @@ All notable changes to this project will be documented in this file. This change
 - Function `resolve-key` that fetches jwks keys and returns a PublicKey given the kid in the jwt header.
 - Function `unsign` which tries to validate a jwt given a jwks URL and a jwt.
 
-[Unreleased]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.2...HEAD
+[Unreleased]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.3...HEAD
+[v0.4.3]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.2...v0.4.3
 [v0.4.2]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.1...v0.4.2
 [v0.4.1]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.0...v0.4.1
 [v0.4.0]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.3.2...v0.4.0
