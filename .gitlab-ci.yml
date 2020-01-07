@@ -16,7 +16,7 @@ after_script:
 
 
 test:
-  image: clojure:tools-deps-alpine
+  image: clojure:openjdk-11-tools-deps-1.10.1.483
   script:
     - clojure -Adev:test
     - clojure -Adev:propertytest
