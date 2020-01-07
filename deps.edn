@@ -12,7 +12,9 @@
                                 org.clojure/test.check {:mvn/version "0.9.0"}
                                 clj-time               {:mvn/version "0.14.4"}
                                 clojure-term-colors    {:mvn/version "0.1.0"}
-                                com.taoensso/timbre    {:mvn/version "4.1.0"}}}
+                                com.taoensso/timbre    {:mvn/version "4.1.0"}
+                                org.slf4j/slf4j-simple {:mvn/version "1.7.30"}}}
+
 
            :test {:extra-paths ["test" "test-resources"]
                   :extra-deps  {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"

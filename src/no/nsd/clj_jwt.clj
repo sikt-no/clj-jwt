@@ -8,7 +8,8 @@
             [clojure.spec.gen.alpha :as gen]
             [clojure.spec.alpha :as s]
             [clojure.tools.logging :as log]
-            [invetica.uri :as uri]))
+            [invetica.uri :as uri]
+            [clojure.string :as str]))
 
 (def jwtregex  #"^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?$")
 
@@ -73,7 +74,7 @@
                     #(s/gen #{(resource "jwks.json")
                               (resource "jwks-other.json")})))
 
-(s/def ::jwks-url (s/with-gen (s/or :url  :invetica.uri/absolute-uri
+(s/def ::jwks-url (s/with-gen (s/or :url  :invetica.uri/absolute-uri-str
                                     :resource ::resource)
                     ;; Always use local resources to avoid spamming actual servers
                     #(s/gen #{(resource "jwks.json")
@@ -129,16 +130,17 @@
   If no key is found refreshes"
   [key-type jwks-url jwt-header]
   (log/debug "Resolving key" jwt-header "from jwk cache for" jwks-url)
-  (let [key-fn (fn [] (get-in @keystore [(:kid jwt-header) key-type]))]
+  (let [key-fn (fn [] (get-in @keystore [jwks-url (:kid jwt-header) key-type]))]
     (if-let [key (key-fn)]
       key
       (do (log/info "Fetch and resolve key" jwt-header "from" jwks-url)
-          (reset! keystore (or (fetch-keys jwks-url) @keystore))
+          (when-let [new-keys (fetch-keys jwks-url)]
+            (swap! keystore #(assoc % jwks-url new-keys)))
           (if-let [key (key-fn)]
             key
             (do
-              (log/info "Could not locate public key corresponding to jwt header's kid: " (:kid jwt-header))
-              (throw (ex-info (str "Could not locate key corresponding to jwt header's kid: " (:kid jwt-header))
+              (log/info "Could not locate public key corresponding to jwt header's kid:" (:kid jwt-header) "for url:" jwks-url)
+              (throw (ex-info (str "Could not locate key corresponding to jwt header's kid: " (:kid jwt-header) " for url: " jwks-url)
                               {:type :validation :cause :unknown-key}))))))))
 
 
@@ -167,13 +169,21 @@
                :token    ::jwt)
   :ret  ::claims)
 
+(defn- remove-bearer [token]
+  (if (and token (str/starts-with? (str/lower-case token) "bearer "))
+    (subs token (count "Bearer "))
+    token))
+
 (defn unsign
   "Given jwks-url, token, and optionally opts validates and returns the claims
   of the given json web token. Opts are the same as buddy-sign.jwt/unsign."
   ([jwks-url token]
    (unsign jwks-url token {}))
   ([jwks-url token opts]
-   (jwt/unsign token (partial resolve-public-key jwks-url) (merge {:alg :rs256} opts))))
+   (assert (s/valid? ::jwks-url jwks-url) "jwks-url must conform to ::jwks-url")
+   (let [token (remove-bearer token)]
+     (assert (s/valid? ::jwt token) "token must conform to ::jwt")
+     (jwt/unsign token (partial resolve-public-key jwks-url) (merge {:alg :rs256} opts)))))
 
 (s/fdef sign
   :args (s/cat :jwks-url ::jwks-url
@@ -189,3 +199,17 @@
   ([jwks-url kid claims options]
    (jwt/sign claims (resolve-private-key jwks-url {:kid kid}) (merge {:alg :rs256} options))))
 
+(comment
+  (unsign "https://example.org"
+          (str "Bearer "
+               "eyJraWQiOiJjQTdxRzJnQnc3QTdJQlc0TVpncFlvcHpSYUx5a3NDTDRoUWV4QVhuX2VFIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJmODA2NDYyNS0xYzZjLTQ0MTQtYmY5My01YTQ2NmY1NTliMmUiLCJpc3MiOiJodHRwczpcL1wvc3NvLXN0YWdlLm5zZC5ubyIsIm5hbWUiOiJJdmFyIFJlZnNkYWwiLCJleHAiOjE1Nzg0MzE1MjAsIm5vbmNlIjoiNlpWZ3BTNnk1SlVqN1I4ZUE3VFUiLCJqdGkiOiI1NTgyYzBjNC0wOGY0LTQ3MWEtOGVmOS01YzEwNTNjOTQyZWUiLCJlbWFpbCI6Ikl2YXIuUmVmc2RhbEBuc2Qubm8iLCJhdXRob3JpdGllcyI6W119.Lc51W1XBv4VakKOgENmR23oCa-2DQm0CrYwfoWkQ1Lq5UoaQYxvxLm6PV4WYqNddCgmX5dGAVq1KkThgu1ra-1IXjb8bTY7HVZ6b6if_NGAoBfcm7_zbZsCp6MNSqBXhIq4B5rPmasLMWzJi09xVBEYT34JuomsL3JsYhPjvu44pXZpYoIeo8yV2PC8QwxFShIte1g6l7bVDOI8jVuW9CIi_R5tncv-i2rovN41mYtpp-GHDMyMHx-Y7Gli0ANX9vnHIDjFYV6LqbcQlri0HP62Uvcm5C0BW1LBsDZqP2oOWStykTIDLDMfyEIKu7ng-q3JxBDC7ItujjQXZNThCCA")))
+
+(comment
+  (unsign "https://sso-stage.nsd.no/.well-known/jwks.json"
+          (str "Bearer "
+               "eyJraWQiOiJjQTdxRzJnQnc3QTdJQlc0TVpncFlvcHpSYUx5a3NDTDRoUWV4QVhuX2VFIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJmODA2NDYyNS0xYzZjLTQ0MTQtYmY5My01YTQ2NmY1NTliMmUiLCJpc3MiOiJodHRwczpcL1wvc3NvLXN0YWdlLm5zZC5ubyIsIm5hbWUiOiJJdmFyIFJlZnNkYWwiLCJleHAiOjE1Nzg0MzE1MjAsIm5vbmNlIjoiNlpWZ3BTNnk1SlVqN1I4ZUE3VFUiLCJqdGkiOiI1NTgyYzBjNC0wOGY0LTQ3MWEtOGVmOS01YzEwNTNjOTQyZWUiLCJlbWFpbCI6Ikl2YXIuUmVmc2RhbEBuc2Qubm8iLCJhdXRob3JpdGllcyI6W119.Lc51W1XBv4VakKOgENmR23oCa-2DQm0CrYwfoWkQ1Lq5UoaQYxvxLm6PV4WYqNddCgmX5dGAVq1KkThgu1ra-1IXjb8bTY7HVZ6b6if_NGAoBfcm7_zbZsCp6MNSqBXhIq4B5rPmasLMWzJi09xVBEYT34JuomsL3JsYhPjvu44pXZpYoIeo8yV2PC8QwxFShIte1g6l7bVDOI8jVuW9CIi_R5tncv-i2rovN41mYtpp-GHDMyMHx-Y7Gli0ANX9vnHIDjFYV6LqbcQlri0HP62Uvcm5C0BW1LBsDZqP2oOWStykTIDLDMfyEIKu7ng-q3JxBDC7ItujjQXZNThCCA")))
+
+(comment
+  (unsign "https://sso.nsd.no/.well-known/jwks.json"
+          (str "Bearer "
+               "eyJraWQiOiJjQTdxRzJnQnc3QTdJQlc0TVpncFlvcHpSYUx5a3NDTDRoUWV4QVhuX2VFIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJmODA2NDYyNS0xYzZjLTQ0MTQtYmY5My01YTQ2NmY1NTliMmUiLCJpc3MiOiJodHRwczpcL1wvc3NvLXN0YWdlLm5zZC5ubyIsIm5hbWUiOiJJdmFyIFJlZnNkYWwiLCJleHAiOjE1Nzg0MzE1MjAsIm5vbmNlIjoiNlpWZ3BTNnk1SlVqN1I4ZUE3VFUiLCJqdGkiOiI1NTgyYzBjNC0wOGY0LTQ3MWEtOGVmOS01YzEwNTNjOTQyZWUiLCJlbWFpbCI6Ikl2YXIuUmVmc2RhbEBuc2Qubm8iLCJhdXRob3JpdGllcyI6W119.Lc51W1XBv4VakKOgENmR23oCa-2DQm0CrYwfoWkQ1Lq5UoaQYxvxLm6PV4WYqNddCgmX5dGAVq1KkThgu1ra-1IXjb8bTY7HVZ6b6if_NGAoBfcm7_zbZsCp6MNSqBXhIq4B5rPmasLMWzJi09xVBEYT34JuomsL3JsYhPjvu44pXZpYoIeo8yV2PC8QwxFShIte1g6l7bVDOI8jVuW9CIi_R5tncv-i2rovN41mYtpp-GHDMyMHx-Y7Gli0ANX9vnHIDjFYV6LqbcQlri0HP62Uvcm5C0BW1LBsDZqP2oOWStykTIDLDMfyEIKu7ng-q3JxBDC7ItujjQXZNThCCA")))
