@@ -210,7 +210,7 @@
   ([jwks-url kid claims]
    (sign jwks-url kid claims {}))
   ([jwks-url kid claims options]
-   (jwt/sign claims (resolve-private-key jwks-url {:kid kid}) (merge {:alg :rs256} options))))
+   (jwt/sign claims (resolve-private-key jwks-url {:kid kid}) (merge-with merge {:alg :rs256 :header {:kid kid}} options))))
 
 (comment
   (unsign "https://example.org"
