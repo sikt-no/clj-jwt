@@ -5,7 +5,8 @@
             [taoensso.timbre :as timbre]
             [taoensso.timbre.tools.logging :as cljlog]
             [clojure.java.io :refer [resource]]
-            [clojure.test :refer [deftest testing is]]))
+            [clojure.test :refer [deftest testing is]])
+  (:import (java.time ZoneId ZonedDateTime)))
 
 ;; Effectively turn of logging in test
 (def timbre-config  {:level :fatal})
@@ -101,6 +102,19 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
     (is (= (clj-jwt/unsign (resource "jwks.json") signed-jwt)
            jwt-payload)))
 
+  (testing "Verify token is not expired"
+    (let [payload {:sub "jalla" :exp (-> (ZonedDateTime/now (ZoneId/of "UTC")) (.plusHours 1) (.toEpochSecond))}]
+      (is (= (->> payload
+                  (clj-jwt/sign (resource "jwks.json") "test-key")
+                  (clj-jwt/unsign (resource "jwks.json")))
+             payload))))
+
+  (testing "Verify token is expired"
+    (let [payload {:sub "jalla" :exp (-> (ZonedDateTime/now (ZoneId/of "UTC")) (.minusHours 1) (.toEpochSecond))}]
+      (is (thrown? Exception (->> payload
+                                  (clj-jwt/sign (resource "jwks.json") "test-key")
+                                  (clj-jwt/unsign (resource "jwks.json")))))))
+
   (testing "Fails if key referenced in jwt head is not found"
     (is (thrown? Exception
                  (clj-jwt/unsign (resource "jwks-other.json") signed-jwt)))))
@@ -117,4 +131,3 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
            {:sub "foo"})))
   (testing "Fails if given key-id not in jwks resource"
     (is (thrown? Exception (clj-jwt/sign (resource "jwks.json") "no-such-key" {:sub "foo"})))))
-
