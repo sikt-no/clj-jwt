@@ -1,7 +1,6 @@
 (ns no.nsd.clj-jwt-test
   (:require [no.nsd.clj-jwt :as clj-jwt]
             [buddy.sign.jwt :as buddy-jwt]
-            [buddy.core.keys.jwk.proto :as buddy-jwk]
             [buddy.core.keys :as buddy-keys]
             [taoensso.timbre :as timbre]
             [taoensso.timbre.tools.logging :as cljlog]
@@ -92,6 +91,10 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
 (deftest verify-jwt
   (testing "Unsigns jwt and returns payload"
     (is (= (clj-jwt/unsign (resource "jwks.json") signed-jwt)
+           jwt-payload)))
+
+  (testing "Unsign supports char arrays as key"
+    (is (= (clj-jwt/unsign (char-array (slurp (resource "jwks.json"))) signed-jwt)
            jwt-payload)))
 
   (testing "Refetches keys if no matching keys found"

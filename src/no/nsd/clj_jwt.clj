@@ -69,7 +69,8 @@
 (s/def ::key-store (s/map-of ::kid
                              ::key))
 
-(s/def ::resource (s/with-gen #(instance? java.net.URL %)
+(s/def ::resource (s/with-gen #(or (instance? java.net.URL %)
+                                   (instance? (class (char-array "")) %))
                     ;; Always use local resources to avoid spamming actual servers
                     #(s/gen #{(resource "jwks.json")
                               (resource "jwks-other.json")})))
