@@ -136,7 +136,7 @@
       key
       (do (log/info "Fetch and resolve key" jwt-header "from" jwks-url)
           (when-let [new-keys (fetch-keys jwks-url)]
-            (swap! keystore #(assoc % jwks-url new-keys)))
+            (swap! keystore #(update % jwks-url merge new-keys)))
           (if-let [key (key-fn)]
             key
             (do
