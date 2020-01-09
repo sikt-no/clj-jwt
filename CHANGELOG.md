@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [v0.4.5] - 2020-01-09
+### Changed
+- Bugfix signing function: Include kid in header by default.
+- Support char arrays as jwks-url. This can be used to test without having to use files/URLs.
+
 ## [v0.4.4] - 2020-01-07
 ### Changed
 - Be slightly more paranoid in scopes function.
@@ -58,7 +63,8 @@ All notable changes to this project will be documented in this file. This change
 - Function `resolve-key` that fetches jwks keys and returns a PublicKey given the kid in the jwt header.
 - Function `unsign` which tries to validate a jwt given a jwks URL and a jwt.
 
-[Unreleased]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.4...HEAD
+[Unreleased]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.5...HEAD
+[v0.4.5]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.4...v0.4.5
 [v0.4.4]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.3...v0.4.4
 [v0.4.3]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.2...v0.4.3
 [v0.4.2]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.1...v0.4.2
