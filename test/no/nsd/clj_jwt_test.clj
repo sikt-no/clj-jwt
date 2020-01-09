@@ -109,6 +109,9 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
   (testing "Signs claims and return a valid jwt"
     (is (= (clj-jwt/sign (resource "jwks.json") "test-key" {:sub "foo"})
            "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJmb28ifQ.PuYhFdk67n-DQHFjgMYeL2WBq1bLQ9yo-9CZulTIWjc_GqN66YuyM6kv1-aKlamH6ZPE3I4W20SgjQWpx84Fl9OuTG9YE6bKsbPCSDRb6w_fY8uWVh6vZpEj6yGL2_fpqdvg3cNK1qfD0x8V-dD24766LMKH1DzawPENer9WB-A")))
+  (testing "Verify round trip"
+    (is (= (clj-jwt/unsign (resource "jwks.json") (clj-jwt/sign (resource "jwks.json") "test.key" {:sub "foo"}))
+           {:sub "foo"})))
   (testing "Fails if given key-id not in jwks resource"
     (is (thrown? Exception (clj-jwt/sign (resource "jwks.json") "no-such-key" {:sub "foo"})))))
 
