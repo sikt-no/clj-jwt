@@ -109,6 +109,9 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
   (testing "Signs claims and return a valid jwt"
     (is (= (clj-jwt/sign (resource "jwks.json") "test-key" {:sub "foo"})
            "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3Qta2V5In0.eyJzdWIiOiJmb28ifQ.pn9YAwHb4FhEksaH9keRA9lgPh01RkkzR44u0wqDJjbXROSygCr6Ry4mT7WuGhY9ha0tBVfriN29pfnZgPiIgI3Z1xue4nMdHnveYo985xvwkW8PIP1yjbshfARscO2SdTm_odyKh-CZzpLiihfM3kpYmFhpL8-pzRLZPSnc3Jg")))
+  (testing "Sign claims using char array as jwks"
+    (is (= (clj-jwt/sign (char-array (slurp (resource "jwks.json"))) "test-key" {:sub "foo"})
+           "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3Qta2V5In0.eyJzdWIiOiJmb28ifQ.pn9YAwHb4FhEksaH9keRA9lgPh01RkkzR44u0wqDJjbXROSygCr6Ry4mT7WuGhY9ha0tBVfriN29pfnZgPiIgI3Z1xue4nMdHnveYo985xvwkW8PIP1yjbshfARscO2SdTm_odyKh-CZzpLiihfM3kpYmFhpL8-pzRLZPSnc3Jg")))
   (testing "Verify round trip"
     (is (= (clj-jwt/unsign (resource "jwks.json") (clj-jwt/sign (resource "jwks.json") "test-key" {:sub "foo"}))
            {:sub "foo"})))

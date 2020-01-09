@@ -210,6 +210,7 @@
   ([jwks-url kid claims]
    (sign jwks-url kid claims {}))
   ([jwks-url kid claims options]
+   (assert (s/valid? ::jwks-url jwks-url) "jwks-url must conform to ::jwks-url")
    (jwt/sign claims (resolve-private-key jwks-url {:kid kid}) (merge-with merge {:alg :rs256 :header {:kid kid}} options))))
 
 (comment
