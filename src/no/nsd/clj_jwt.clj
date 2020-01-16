@@ -110,7 +110,7 @@
   "Fetches the jwks from the supplied jwks-url and converts to java Keys.
   Returns a map keyed on key-id where each value is a RSAPublicKey object"
   [jwks-url]
-  (log/info "Fetching keys from jwks-url" jwks-url)
+  (log/debug "Fetching keys from jwks-url" jwks-url)
   (try  (->> jwks-url
              slurp
              (#(json/read-str % :key-fn keyword))
@@ -134,13 +134,13 @@
   (let [key-fn (fn [] (get-in @keystore [jwks-url (:kid jwt-header) key-type]))]
     (if-let [key (key-fn)]
       key
-      (do (log/info "Fetch and resolve key" jwt-header "from" jwks-url)
+      (do (log/debug "Fetch and resolve key" jwt-header "from" jwks-url)
           (when-let [new-keys (fetch-keys jwks-url)]
             (swap! keystore #(update % jwks-url merge new-keys)))
           (if-let [key (key-fn)]
             key
             (do
-              (log/info "Could not locate public key corresponding to jwt header's kid:" (:kid jwt-header) "for url:" jwks-url)
+              (log/error "Could not locate public key corresponding to jwt header's kid:" (:kid jwt-header) "for url:" jwks-url)
               (throw (ex-info (str "Could not locate key corresponding to jwt header's kid: " (:kid jwt-header) " for url: " jwks-url)
                               {:type :validation :cause :unknown-key}))))))))
 

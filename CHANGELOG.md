@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [v0.4.6] - 2020-01-16
+### Changed
+- Library should stay silent (DEBUG level) by default
+- Log error level on failure
+
 ## [v0.4.5] - 2020-01-09
 ### Changed
 - Bugfix signing function: Include kid in header by default.
@@ -63,7 +68,8 @@ All notable changes to this project will be documented in this file. This change
 - Function `resolve-key` that fetches jwks keys and returns a PublicKey given the kid in the jwt header.
 - Function `unsign` which tries to validate a jwt given a jwks URL and a jwt.
 
-[Unreleased]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.5...HEAD
+[Unreleased]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.6...HEAD
+[v0.4.6]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.5...v0.4.6
 [v0.4.5]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.4...v0.4.5
 [v0.4.4]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.3...v0.4.4
 [v0.4.3]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.2...v0.4.3
