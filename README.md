@@ -64,10 +64,10 @@ Refer to your editors documentation about how to connect or start a repl integra
 clojure -Adev
 
 # Run regular old Clojure tests
-clojure -Adev:test
+clojure -Mdev:test
 
 # Exercise clojure specs
-clojure -Adev:propertytest
+clojure -Mdev:propertytest
 ```
 
 You can start a REPL in the project to evaluate code.

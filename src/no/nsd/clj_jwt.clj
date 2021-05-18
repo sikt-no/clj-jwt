@@ -70,7 +70,13 @@
                              ::key))
 
 (s/def ::resource (s/with-gen #(or (instance? java.net.URL %)
-                                   (instance? (class (char-array "")) %))
+                                   (instance? (class (char-array "")) %)
+                                   (and (string? %)
+                                        (try
+                                          (slurp %)
+                                          true
+                                          (catch Exception e
+                                            false))))
                     ;; Always use local resources to avoid spamming actual servers
                     #(s/gen #{(resource "jwks.json")
                               (resource "jwks-other.json")})))
@@ -181,7 +187,7 @@
   ([jwks-url token]
    (unsign jwks-url token {}))
   ([jwks-url token opts]
-   (assert (s/valid? ::jwks-url jwks-url) "jwks-url must conform to ::jwks-url")
+   (assert (s/valid? ::jwks-url jwks-url) (str "jwks-url must conform to ::jwks-url. Was given: " jwks-url))
    (let [token (remove-bearer token)]
      (assert (s/valid? ::jwt token) "token must conform to ::jwt")
      (jwt/unsign token (partial resolve-public-key jwks-url) (merge {:alg :rs256} opts)))))
