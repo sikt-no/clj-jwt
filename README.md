@@ -158,7 +158,9 @@ are mutable and should not be tagged in git.
 
 ## License
 
-Copyright © 2018 NSD - NORSK SENTER FOR FORSKNINGSDATA AS
+Copyright © 2022 Sikt - Norwegian Agency for Shared Services in Education and Research
+
+Copyright © 2018-2021 NSD - NORSK SENTER FOR FORSKNINGSDATA AS
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
