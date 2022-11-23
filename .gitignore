@@ -13,3 +13,4 @@ pom.xml.asc
 .dir-locals.el
 .idea/
 *.iml
+.clj-kondo/
