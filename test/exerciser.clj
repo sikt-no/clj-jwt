@@ -138,3 +138,5 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
                              " successfully exercised\n"))))))
   (System/exit 0))
 
+(defn exercise [_]
+  (-main))

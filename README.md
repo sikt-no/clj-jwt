@@ -64,14 +64,11 @@ Refer to your editors documentation about how to connect or start a repl integra
 clojure -Adev
 
 # Run regular old Clojure tests
-clojure -Mdev:test
+clojure -X:test
 
 # Exercise clojure specs
-clojure -Mdev:propertytest
+clojure -X:propertytest
 ```
-
-You can start a REPL in the project to evaluate code.
-For editor integration see [clojure guides - editor integrations](https://gitlab.nsd.no/clojure/guides/blob/master/editor.md).
 
 ### Installing 'work in progress' locally
 
