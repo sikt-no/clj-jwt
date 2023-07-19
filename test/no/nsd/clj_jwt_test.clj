@@ -9,7 +9,7 @@
   (:import (java.time ZoneId ZonedDateTime)))
 
 ;; Effectively turn of logging in test
-(def timbre-config  {:level :fatal})
+(def timbre-config  {:min-level :fatal})
 (timbre/merge-config! timbre-config)
 (cljlog/use-timbre)
 

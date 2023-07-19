@@ -14,7 +14,7 @@
             [clojure.term.colors :refer :all]))
 
 ;; Effectively turn of logging in exercises
-(def timbre-config  {:level :fatal})
+(def timbre-config  {:min-level :fatal})
 (timbre/merge-config! timbre-config)
 (cljlog/use-timbre)
 

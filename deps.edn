@@ -8,21 +8,22 @@
            invetica/uri              {:mvn/version "0.5.0"}}
 
  :aliases {:dev          {:extra-paths ["test" "test-resources"]
-                          :extra-deps  {com.taoensso/timbre                     {:mvn/version "4.1.0"}
+                          :extra-deps  {com.taoensso/timbre                     {:mvn/version "6.2.2"}
                                         clj-time/clj-time                       {:mvn/version "0.15.2"}
                                         clojure-term-colors/clojure-term-colors {:mvn/version "0.1.0"}
                                         org.clojure/test.check                  {:mvn/version "1.1.1"}}}
 
            :test         {:extra-paths ["test" "test-resources"]
-                          :extra-deps  {com.taoensso/timbre                     {:mvn/version "4.1.0"}
+                          :extra-deps  {com.taoensso/timbre                     {:mvn/version "6.2.2"}
                                         clj-time/clj-time                       {:mvn/version "0.15.2"}
                                         clojure-term-colors/clojure-term-colors {:mvn/version "0.1.0"}
-                                        org.clojure/test.check                  {:mvn/version "1.1.1"} io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
+                                        org.clojure/test.check                  {:mvn/version "1.1.1"}
+                                        io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
                           :main-opts   ["-m" "cognitect.test-runner"]
                           :exec-fn     cognitect.test-runner.api/test}
 
            :propertytest {:extra-paths ["test" "test-resources"]
-                          :extra-deps  {com.taoensso/timbre                     {:mvn/version "4.1.0"}
+                          :extra-deps  {com.taoensso/timbre                     {:mvn/version "6.2.2"}
                                         clj-time/clj-time                       {:mvn/version "0.15.2"}
                                         clojure-term-colors/clojure-term-colors {:mvn/version "0.1.0"}
                                         org.clojure/test.check                  {:mvn/version "1.1.1"}}
