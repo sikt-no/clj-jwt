@@ -4,7 +4,7 @@
  :documents [{:file "CHANGELOG.md"
               :match-exactly "Unreleased"
               :action :append-after
-              :text "\n\n## [{{version}}] - {{now/yyyy}}-{{now/mm}}-{{now/dd}}"}
+              :text "\n## [{{version}}] - {{now/yyyy}}-{{now/mm}}-{{now/dd}}"}
              {:file "README.md"
               :match "com.github.sikt-no/clj-jwt"
               :action :replace
