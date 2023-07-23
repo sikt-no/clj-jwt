@@ -1,0 +1,12 @@
+{:lib com.github.sikt-no/clj-jwt
+ ;; You could also specify a fixed version like "0.1.2" if you want.
+ :version "0.4.{{git/commit-count}}"
+ :documents [{:file "CHANGELOG.md"
+              :match-exactly "Unreleased"
+              :action :append-after
+              :text "\n\n## [{{version}}] - {{now/yyyy}}-{{now/mm}}-{{now/dd}}"}
+             {:file "README.md"
+              :match "com.github.sikt-no/clj-jwt"
+              :action :replace
+              :keep-indent? true
+              :text "com.github.sikt-no/clj-jwt :git/tag \"{{version}}\" :git/sha \"{{git/head-short-sha}}\""}]}

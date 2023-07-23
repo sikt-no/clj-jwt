@@ -1,7 +1,11 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
-## [Unreleased]
+## Unreleased
+### Changed
+- Bump dependencies, removing some CVEs.
+- Use build.edn
+- Use `major.minor.commit-count` version scheme.
 
 ## [v0.4.6] - 2020-01-16
 ### Changed
