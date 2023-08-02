@@ -4,8 +4,12 @@ All notable changes to this project will be documented in this file. This change
 ## Unreleased
 ### Changed
 - Bump dependencies, removing some CVEs.
-- Use build.edn
+- Use [build.edn](https://github.com/liquidz/build.edn).
 - Use `major.minor.commit-count` version scheme.
+
+## [0.4.7] - 2022-11-23
+### Changed
+- Moved to github.com/sikt-no/clj-jwt
 
 ## [v0.4.6] - 2020-01-16
 ### Changed
@@ -72,7 +76,8 @@ All notable changes to this project will be documented in this file. This change
 - Function `resolve-key` that fetches jwks keys and returns a PublicKey given the kid in the jwt header.
 - Function `unsign` which tries to validate a jwt given a jwks URL and a jwt.
 
-[Unreleased]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.6...HEAD
+[Unreleased]: https://github.com/sikt-no/clj-jwt/compare/0.4.7...HEAD
+[v0.4.7]: https://github.com/sikt-no/clj-jwt/compare/v0.4.6...0.4.7
 [v0.4.6]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.5...v0.4.6
 [v0.4.5]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.4...v0.4.5
 [v0.4.4]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.3...v0.4.4

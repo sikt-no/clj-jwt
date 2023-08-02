@@ -6,7 +6,7 @@
               :action :append-after
               :text "\n## [{{version}}] - {{now/yyyy}}-{{now/mm}}-{{now/dd}}"}
              {:file "README.md"
-              :match "com.github.sikt-no/clj-jwt"
+              :match-exactly "com.github.sikt-no/clj-jwt"
               :action :replace
               :keep-indent? true
               :text "com.github.sikt-no/clj-jwt :git/tag \"{{version}}\" :git/sha \"{{git/head-short-sha}}\""}]}
