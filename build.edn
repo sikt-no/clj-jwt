@@ -2,7 +2,7 @@
  ;; You could also specify a fixed version like "0.1.2" if you want.
  :version "0.4.{{git/commit-count}}"
  :documents [{:file "CHANGELOG.md"
-              :match-exactly "Unreleased"
+              :match-exactly "## [Unreleased]"
               :action :append-after
               :text "\n## [{{version}}] - {{now/yyyy}}-{{now/mm}}-{{now/dd}}"}
              {:file "README.md"
