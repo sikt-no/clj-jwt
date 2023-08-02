@@ -77,16 +77,16 @@ All notable changes to this project will be documented in this file. This change
 - Function `unsign` which tries to validate a jwt given a jwks URL and a jwt.
 
 [Unreleased]: https://github.com/sikt-no/clj-jwt/compare/0.4.7...HEAD
-[v0.4.7]: https://github.com/sikt-no/clj-jwt/compare/v0.4.6...0.4.7
-[v0.4.6]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.5...v0.4.6
-[v0.4.5]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.4...v0.4.5
-[v0.4.4]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.3...v0.4.4
-[v0.4.3]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.2...v0.4.3
-[v0.4.2]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.1...v0.4.2
-[v0.4.1]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.4.0...v0.4.1
-[v0.4.0]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.3.2...v0.4.0
-[v0.3.2]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.3.1...v0.3.2
-[v0.3.1]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.3.0...v0.3.1
-[v0.3.0]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.2.1...v0.3.0
-[v0.2.1]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.2.0...v0.2.1
-[v0.2.0]: https://gitlab.nsd.no/clojure/clj-jwt/compare/v0.1.0...v0.2.0
+[0.4.7]: https://github.com/sikt-no/clj-jwt/compare/v0.4.6...0.4.7
+[v0.4.6]: https://github.com/sikt-no/clj-jwt/compare/v0.4.5...v0.4.6
+[v0.4.5]: https://github.com/sikt-no/clj-jwt/compare/v0.4.4...v0.4.5
+[v0.4.4]: https://github.com/sikt-no/clj-jwt/compare/v0.4.3...v0.4.4
+[v0.4.3]: https://github.com/sikt-no/clj-jwt/compare/v0.4.2...v0.4.3
+[v0.4.2]: https://github.com/sikt-no/clj-jwt/compare/v0.4.1...v0.4.2
+[v0.4.1]: https://github.com/sikt-no/clj-jwt/compare/v0.4.0...v0.4.1
+[v0.4.0]: https://github.com/sikt-no/clj-jwt/compare/v0.3.2...v0.4.0
+[v0.3.2]: https://github.com/sikt-no/clj-jwt/compare/v0.3.1...v0.3.2
+[v0.3.1]: https://github.com/sikt-no/clj-jwt/compare/v0.3.0...v0.3.1
+[v0.3.0]: https://github.com/sikt-no/clj-jwt/compare/v0.2.1...v0.3.0
+[v0.2.1]: https://github.com/sikt-no/clj-jwt/compare/v0.2.0...v0.2.1
+[v0.2.0]: https://github.com/sikt-no/clj-jwt/compare/v0.1.0...v0.2.0
