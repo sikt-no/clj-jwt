@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file. This change
 - Bump dependencies, removing some CVEs.
 - Use [build.edn](https://github.com/liquidz/build.edn).
 - Use `major.minor.commit-count` version scheme.
+- Simplify running tests.
+### Added
+- NVD check script.
 
 ## [0.4.7] - 2022-11-23
 ### Changed
