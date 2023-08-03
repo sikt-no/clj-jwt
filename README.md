@@ -91,69 +91,10 @@ the other clojure project's `deps.edn` file:
  {clj-jwt {:local/root "/path/to/clj-jwt"}}}
 ```
 
-## Making new release
+## Making a new release
 
-You need [Leiningen installed](https://leiningen.org/#install). The
-`project.clj` file specifies a `snapshot` and `release` repository. You need to
-configure credentials for each of the repositories in your
-`~/.lein/credentials.clj` file. Example:
-
-```edn
-{"https://nexus.nsd.no/repository/maven-snapshots/" {:username "your-nexus-user"
-                                                     :password "super secret password"}
- "https://nexus.nsd.no/repository/maven-releases/" {:username "your-nexus-user"
-                                                     :password "super secret password"}}
-```
-
-To make a release follow these points:
-
-### Run tests and property tests (specs)
-
-```bash
-# Run regular old Clojure tests
-clojure -X:test
-
-# Exercise clojure specs
-clojure -X:propertytest
-```
-
-### Bump version number in project.clj
-
-There are different scenarios where you need to increment the version number
-differently. The gist of it is that this library follows
-[semver](https://semver.org/) with SNAPSHOT releases for test releases.
-
-Making final release from snapshot builds:
-
-0.2.0-SNAPSHOT -> 0.2.0
-
-Making snapshot release from release build:
-
-0.2.0 -> 0.3.0-SNAPSHOT
-
-Making patch release from release build:
-
-0.2.0 -> 0.2.1
-
-Then run the lein deploy command:
-
-### Run leiningen deploy
-
-To build jar and upload to [NSD's Nexus](https://nexus.nsd.no):
-
-```bash
-lein deploy
-```
-
-### Finally commit, push and tag release
-
-Add a new changelog entry in the `CHANGELOG.md` file.
-Commit the project.clj version bump, push it to the Gitlab repository, and tag
-it. The tag message should describe the changes made, and the release notes can
-link to the release in Nexus.
-
-PS! It is not necessary to commit and push SNAPSHOT releases. SNAPSHOT releases
-are mutable and should not be tagged in git.
+Go to [https://github.com/sikt-no/clj-jwt/actions/workflows/release.yml](https://github.com/sikt-no/clj-jwt/actions/workflows/release.yml)
+and press `Run workflow`.
 
 ## License
 

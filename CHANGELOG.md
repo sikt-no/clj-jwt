@@ -82,7 +82,8 @@ All notable changes to this project will be documented in this file. This change
 - Function `resolve-key` that fetches jwks keys and returns a PublicKey given the kid in the jwt header.
 - Function `unsign` which tries to validate a jwt given a jwks URL and a jwt.
 
-[Unreleased]: https://github.com/sikt-no/clj-jwt/compare/0.4.7...HEAD
+[Unreleased]: https://github.com/sikt-no/clj-jwt/compare/0.5.73...HEAD
+[0.5.73]: https://github.com/sikt-no/clj-jwt/compare/0.4.7...0.5.73
 [0.4.7]: https://github.com/sikt-no/clj-jwt/compare/v0.4.6...0.4.7
 [v0.4.6]: https://github.com/sikt-no/clj-jwt/compare/v0.4.5...v0.4.6
 [v0.4.5]: https://github.com/sikt-no/clj-jwt/compare/v0.4.4...v0.4.5
