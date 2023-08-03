@@ -4,8 +4,9 @@ All notable changes to this project will be documented in this file. This change
 ## [Unreleased]
 
 ## [0.5.73] - 2023-08-03
-### Changed
+### Breaking change
 - Move namespace to `com.github.sikt-no.clj-jwt`.
+### Changed
 - Bump dependencies, removing some CVEs.
 - Use [build.edn](https://github.com/liquidz/build.edn).
 - Use `major.minor.commit-count` version scheme.
