@@ -58,7 +58,6 @@ Ensure you have [Clojure installed](https://clojure.org/guides/getting_started).
 Then clone project and run Clojure Tools Deps targets.  If you have rlwrap
 installed you can use the `clj` command in place of `clojure`.
 
-Note that you always need to include the `dev` alias when developing as this alias provides all the necessary libraries.
 Refer to your editors documentation about how to connect or start a repl integrated with the editor.
 
 ```bash
@@ -74,16 +73,7 @@ clojure -X:propertytest
 
 ### Installing 'work in progress' locally
 
-If you are contributing code to the library you may wish to test it against a
-clojure project locally to ensure everything works.
-
-You may install your version of clj-jwt into your local m2 repository:
-
-```bash
-lein install
-```
-
-If you use clojure tools deps you can simply refer to your clj-jwt project in
+You can simply refer to your clj-jwt project in
 the other clojure project's `deps.edn` file:
 
 ```edn
