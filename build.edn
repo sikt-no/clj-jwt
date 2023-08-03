@@ -1,12 +1,19 @@
 {:lib com.github.sikt-no/clj-jwt
- ;; You could also specify a fixed version like "0.1.2" if you want.
+
  :version "0.4.{{git/commit-count}}"
+
+ :github-actions? true
+
+ :scm {:connection "scm:git:git://github.com/sikt-no/clj-jwt.git"
+       :developerConnection "scm:git:ssh://git@github.com/sikt-no/clj-jwt.git"
+       :url "https://github.com/sikt-no/clj-jwt"}
+
  :documents [{:file "CHANGELOG.md"
               :match-exactly "## [Unreleased]"
               :action :append-after
               :text "\n## [{{version}}] - {{now/yyyy}}-{{now/mm}}-{{now/dd}}"}
              {:file "README.md"
-              :match-exactly "com.github.sikt-no/clj-jwt"
+              :match-exactly "com.github.sikt-no/clj-jwt :git/tag"
               :action :replace
               :keep-indent? true
               :text "com.github.sikt-no/clj-jwt :git/tag \"{{version}}\" :git/sha \"{{git/head-short-sha}}\""}]}
