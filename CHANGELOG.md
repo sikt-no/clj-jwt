@@ -2,9 +2,8 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
-
-## [0.4.70] - 2023-08-03
 ### Changed
+- Move namespace to `com.github.sikt-no.clj-jwt`.
 - Bump dependencies, removing some CVEs.
 - Use [build.edn](https://github.com/liquidz/build.edn).
 - Use `major.minor.commit-count` version scheme.

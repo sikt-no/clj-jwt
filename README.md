@@ -21,7 +21,7 @@ By using this library you can abstract away key handling as the library will aut
 You can use the `unsign` function which wraps buddy-sign's own unsign function:
 
 ```clojure
-(require '[no.nsd.clj-jwt :as clj-jwt])
+(require '[com.github.sikt-no.clj-jwt :as clj-jwt])
 
 (clj-jwt/unsign "https://sso-stage.nsd.no/.well-known/jwks.json" "<your-token-here>")
 ```
@@ -31,7 +31,7 @@ buddy-auth:
 
 ```clojure
 (require '[buddy.auth.backends :as backends])
-(require '[no.nsd.clj-jwt :as clj-jwt])
+(require '[com.github.sikt-no.clj-jwt :as clj-jwt])
 
 (def auth-backend
   (backends/jws {:secret (partial clj-jwt/resolve-public-key "https://sso-stage.nsd.no/.well-known/jwks.json")
@@ -47,7 +47,7 @@ You can sign your own tokens if your JSON web token contains a private key compo
 The `sign` function expects a jwks URL/path, a key id, the claims to sign, and optionally options to the buddy sign function.
 
 ```clojure
-(require '[no.nsd.clj-jwt :as clj-jwt])
+(require '[com.github.sikt-no.clj-jwt :as clj-jwt])
 
 (clj-jwt/sign "my-local-jwks.json" "my-jwk-kid" {:sub "some-user"})
 ```
@@ -111,10 +111,10 @@ To make a release follow these points:
 
 ```bash
 # Run regular old Clojure tests
-clojure -Atest
+clojure -X:test
 
 # Exercise clojure specs
-clojure -Apropertytest
+clojure -X:propertytest
 ```
 
 ### Bump version number in project.clj
@@ -163,7 +163,3 @@ Copyright © 2018—2021 NSD - NORSK SENTER FOR FORSKNINGSDATA AS
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
-    
-    
-    
-    

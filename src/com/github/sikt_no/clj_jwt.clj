@@ -1,4 +1,4 @@
-(ns no.nsd.clj-jwt
+(ns com.github.sikt-no.clj-jwt
   (:require [buddy.core.keys :as keys]
             [buddy.core.keys.jwk.proto :as buddy-jwk]
             [buddy.sign.jwt :as jwt]
@@ -11,12 +11,12 @@
             [invetica.uri :as uri]
             [clojure.string :as str]))
 
-(def jwtregex  #"^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?$")
+(def jwtregex #"^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?$")
 
 (s/def ::sub (s/nilable string?))
 
 (s/def ::kid (s/with-gen (s/nilable string?)
-               #(s/gen #{"test-key"})))
+                         #(s/gen #{"test-key"})))
 
 (s/def ::scope (s/nilable string?))
 
@@ -27,21 +27,21 @@
 
 (s/def ::kty (s/with-gen (s/nilable (s/and string?
                                            #(= "RSA" %)))
-               #(s/gen #{"RSA" nil})))
+                         #(s/gen #{"RSA" nil})))
 
 ;; n is the public key component of a json web key
 (s/def ::n (s/with-gen string?
-             #(s/gen #{;;valid:
-                       "nZq9S6leC-8Se5-VlHcVZ0HVpQRwFNuZRp82WFddhMZUoEEKybuiym6uNh5kquNADbZcRw4yxJI3BBuWLoOz-YBjXlnxNqeQgr2E8LZ_AsT-6Yb6xdKrZ5acXaLAQsXwk53GHhUcFzOFu3u6BXVMknCY6jI6dxgOlSlWQV2nCjWTio_cTbDjsSSfIQ9jWcK9aCmw37omCZqIXlLwGA9fD4Ah8c4-QTfV7dZ7q_MQmrCqv88_eYAvg-lUlUQRnB9jGg53MWlitYGKW_aUr8oRn7nHm-gsXtL_bzWLxSSbkxiht52e4mcFNOXAqXVlocW1YJC3weRojI-CXJZ6218z6Q"
-                       ;;invalid:
-                       "xnmcbvjksdhfwiuerfsdjbsdkjfghwileugkhjbvnxdvjbvwiuerhslkdjbvvklwl4iuhjxcvxnmbvkwerjlfhiwuerhsjdkdfkjbvwe4riefslkv-dlsfkjhwpoiefhcvsdjkhvowpefwoeifhv_sdøflkhjwpeoifhsvøkl"})))
+                       #(s/gen #{;;valid:
+                                 "nZq9S6leC-8Se5-VlHcVZ0HVpQRwFNuZRp82WFddhMZUoEEKybuiym6uNh5kquNADbZcRw4yxJI3BBuWLoOz-YBjXlnxNqeQgr2E8LZ_AsT-6Yb6xdKrZ5acXaLAQsXwk53GHhUcFzOFu3u6BXVMknCY6jI6dxgOlSlWQV2nCjWTio_cTbDjsSSfIQ9jWcK9aCmw37omCZqIXlLwGA9fD4Ah8c4-QTfV7dZ7q_MQmrCqv88_eYAvg-lUlUQRnB9jGg53MWlitYGKW_aUr8oRn7nHm-gsXtL_bzWLxSSbkxiht52e4mcFNOXAqXVlocW1YJC3weRojI-CXJZ6218z6Q"
+                                 ;;invalid:
+                                 "xnmcbvjksdhfwiuerfsdjbsdkjfghwileugkhjbvnxdvjbvwiuerhslkdjbvvklwl4iuhjxcvxnmbvkwerjlfhiwuerhsjdkdfkjbvwe4riefslkv-dlsfkjhwpoiefhcvsdjkhvowpefwoeifhv_sdøflkhjwpeoifhsvøkl"})))
 
 ;; d is the private key component of a json web key
 (s/def ::d (s/with-gen string?
-             #(s/gen #{;; Valid:
-                       "PJrXSYLiYRebbJN4yHujP3LfoHzCEnVh3Jl2FN9KaWK260HmROQYZG-sPQ5Bwqg-bz1xbyE1dQfSsuBy-3LqHrqM-ilsvcNZqQEY9R52d9D6kXmTSNMHx-3jGQ0SeO0eIFMHffLHOomvECPEKZkSPB65rijLcKQKmbnA_OlF_EE"
-                       ;; Invalid:
-                       "xnmcbvjksdhfwiuerfsdjbsdkjfghwileugkhjbvnxdvjbvwiuerhslkdjbvvklwl4iuhjxcvxnmbvkwerjlfhiwuerhsjdkdfkjbvwe4riefslkv-dlsfkjhwpoiefhcvsdjkhvowpefwoeifhv_sdøflkhjwpeoifhsvøkl"})))
+                       #(s/gen #{;; Valid:
+                                 "PJrXSYLiYRebbJN4yHujP3LfoHzCEnVh3Jl2FN9KaWK260HmROQYZG-sPQ5Bwqg-bz1xbyE1dQfSsuBy-3LqHrqM-ilsvcNZqQEY9R52d9D6kXmTSNMHx-3jGQ0SeO0eIFMHffLHOomvECPEKZkSPB65rijLcKQKmbnA_OlF_EE"
+                                 ;; Invalid:
+                                 "xnmcbvjksdhfwiuerfsdjbsdkjfghwileugkhjbvnxdvjbvwiuerhslkdjbvvklwl4iuhjxcvxnmbvkwerjlfhiwuerhsjdkdfkjbvwe4riefslkv-dlsfkjhwpoiefhcvsdjkhvowpefwoeifhv_sdøflkhjwpeoifhsvøkl"})))
 
 (s/def ::e string?)
 
@@ -52,8 +52,8 @@
 
 (s/def ::jwt (s/nilable (s/with-gen (s/and string?
                                            #(re-matches jwtregex %))
-                          #(s/gen #{(jwt/sign (gen/generate (s/gen ::claims))
-                                              "secret")}))))
+                                    #(s/gen #{(jwt/sign (gen/generate (s/gen ::claims))
+                                                        "secret")}))))
 
 (s/def ::jwt-header (s/keys :req-un [::kid ::kty]))
 
@@ -77,19 +77,19 @@
                                           true
                                           (catch Exception e
                                             false))))
-                    ;; Always use local resources to avoid spamming actual servers
-                    #(s/gen #{(resource "jwks.json")
-                              (resource "jwks-other.json")})))
+                              ;; Always use local resources to avoid spamming actual servers
+                              #(s/gen #{(resource "jwks.json")
+                                        (resource "jwks-other.json")})))
 
-(s/def ::jwks-url (s/with-gen (s/or :url  :invetica.uri/absolute-uri-str
+(s/def ::jwks-url (s/with-gen (s/or :url :invetica.uri/absolute-uri-str
                                     :resource ::resource)
-                    ;; Always use local resources to avoid spamming actual servers
-                    #(s/gen #{(resource "jwks.json")
-                              (resource "jwks-other.json")})))
+                              ;; Always use local resources to avoid spamming actual servers
+                              #(s/gen #{(resource "jwks.json")
+                                        (resource "jwks-other.json")})))
 
 (s/fdef jwks-edn->keys
-  :args (s/cat :jwks (s/coll-of ::jwk :type vector?))
-  :ret ::key-store)
+        :args (s/cat :jwks (s/coll-of ::jwk :type vector?))
+        :ret ::key-store)
 
 (defn- jwks-edn->keys
   "Transform a vector of json web keys into a map of kid -> key pairs where each key is a map
@@ -101,35 +101,35 @@
        (group-by :kid)
        (fmap first)
        (fmap #(assoc {}
-                     :public-key (buddy-jwk/jwk->public-key %)
-                     :private-key (buddy-jwk/jwk->private-key %)))))
+                :public-key (buddy-jwk/jwk->public-key %)
+                :private-key (buddy-jwk/jwk->private-key %)))))
 
 (s/fdef fetch-keys
-  :args (s/cat :jwks-url ::jwks-url)
-  :ret  (s/with-gen ::key-store
-          #(s/gen #{(->> (resource "jwks.json")
-                         slurp
-                         ((fn [jwks-string] (json/read-str jwks-string :key-fn keyword)))
-                         jwks-edn->keys)})))
+        :args (s/cat :jwks-url ::jwks-url)
+        :ret (s/with-gen ::key-store
+                         #(s/gen #{(->> (resource "jwks.json")
+                                        slurp
+                                        ((fn [jwks-string] (json/read-str jwks-string :key-fn keyword)))
+                                        jwks-edn->keys)})))
 
 (defn- fetch-keys
   "Fetches the jwks from the supplied jwks-url and converts to java Keys.
   Returns a map keyed on key-id where each value is a RSAPublicKey object"
   [jwks-url]
   (log/debug "Fetching keys from jwks-url" jwks-url)
-  (try  (->> jwks-url
-             slurp
-             (#(json/read-str % :key-fn keyword))
-             jwks-edn->keys)
-        (catch Exception e (do (log/error "Could not fetch jwks keys")
-                               false))))
+  (try (->> jwks-url
+            slurp
+            (#(json/read-str % :key-fn keyword))
+            jwks-edn->keys)
+       (catch Exception e (do (log/error "Could not fetch jwks keys")
+                              false))))
 
 
 ;; Atom to hold the public and private keys used for signature validation in memory for
 ;; caching purposes. The atom holds a clojure map with kid -> key pairs. Each key is a
 ;; clojure map containing a :public-key and optionally a :private-key.
 (defonce keystore
-  (atom {}))
+         (atom {}))
 
 
 (defn- resolve-key
@@ -152,9 +152,9 @@
 
 
 (s/fdef resolve-public-key
-  :args (s/cat :jwks-url    ::jwks-url
-               :jwt-header  ::jwt-header)
-  :ret  ::public-key)
+        :args (s/cat :jwks-url ::jwks-url
+                     :jwt-header ::jwt-header)
+        :ret ::public-key)
 
 (def resolve-public-key
   "Returns java.security.PublicKey given jwks-url and :kid in jwt-header.
@@ -163,18 +163,18 @@
 
 
 (s/fdef resolve-private-key
-  :args (s/cat :jwks-url ::jwks-url
-               :jwt-header ::jwt-header)
-  :ret  ::private-key)
+        :args (s/cat :jwks-url ::jwks-url
+                     :jwt-header ::jwt-header)
+        :ret ::private-key)
 
 (def resolve-private-key
   (partial resolve-key :private-key))
 
 
 (s/fdef unsign
-  :args (s/cat :jwks-url ::jwks-url
-               :token    ::jwt)
-  :ret  ::claims)
+        :args (s/cat :jwks-url ::jwks-url
+                     :token ::jwt)
+        :ret ::claims)
 
 (defn- remove-bearer [token]
   (if (and token (str/starts-with? (str/lower-case token) "bearer "))
@@ -205,10 +205,10 @@
     #{}))
 
 (s/fdef sign
-  :args (s/cat :jwks-url ::jwks-url
-               :kid      ::kid
-               :claims   ::claims)
-  :ret ::jwt)
+        :args (s/cat :jwks-url ::jwks-url
+                     :kid ::kid
+                     :claims ::claims)
+        :ret ::jwt)
 
 (defn sign
   "Given jwks-url, claims and optionally opts signs claims and returns a token. Uses

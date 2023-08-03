@@ -1,5 +1,5 @@
-(ns no.nsd.clj-jwt-test
-  (:require [no.nsd.clj-jwt :as clj-jwt]
+(ns com.github.sikt-no.clj-jwt-test
+  (:require [com.github.sikt-no.clj-jwt :as clj-jwt]
             [buddy.sign.jwt :as buddy-jwt]
             [buddy.core.keys :as buddy-keys]
             [taoensso.timbre :as timbre]

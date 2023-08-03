@@ -1,6 +1,6 @@
 (ns exerciser
   (:gen-class)
-  (:require [no.nsd.clj-jwt]
+  (:require [com.github.sikt-no.clj-jwt]
             [buddy.core.keys :as keys]
             [buddy.sign.jwt :as jwt]
             [clj-time.core :as time]
@@ -51,7 +51,7 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
 (def sample-claims {:sub   "f750bd26-ae85-4808-8f9a-dcc964fc8664"
                     :exp   (time/plus (time/now) (time/minutes 30))})
 
-(def untestable-funs ['no.nsd.clj-jwt/fetch-keys])
+(def untestable-funs ['com.github.sikt-no.clj-jwt/fetch-keys])
 
 (defn generate-jwt
   [claims key]
@@ -63,15 +63,15 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
 (defn init
   []
   ;; Redifine key related specs to enable generating
-  (s/def :no.nsd.clj-jwt/RSAPublicKey (s/with-gen keys/public-key?
-                                                  #(s/gen #{ec-pubkey})))
-  (s/def :no.nsd.clj-jwt/jwt  (s/with-gen (s/nilable (s/and string?
-                                                            #(re-matches no.nsd.clj-jwt/jwtregex %)))
-                                          #(s/gen #{(generate-jwt sample-claims ec-privkey)})))
+  (s/def :com.github.sikt-no.clj-jwt/RSAPublicKey (s/with-gen keys/public-key?
+                                                              #(s/gen #{ec-pubkey})))
+  (s/def :com.github.sikt-no.clj-jwt/jwt  (s/with-gen (s/nilable (s/and string?
+                                                                        #(re-matches com.github.sikt-no.clj-jwt/jwtregex %)))
+                                                      #(s/gen #{(generate-jwt sample-claims ec-privkey)})))
 
   ;; Stub out functions that will call external resources
-  (stest/instrument [`no.nsd.clj-jwt/fetch-keys]
-                    {:stub #{`no.nsd.clj-jwt/fetch-keys}}))
+  (stest/instrument [`com.github.sikt-no.clj-jwt/fetch-keys]
+                    {:stub #{`com.github.sikt-no.clj-jwt/fetch-keys}}))
 
 
 (defn result-type
@@ -116,7 +116,7 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
 
 (defn -main
   [& args]
-  (doseq [ns ['no.nsd.clj-jwt]]
+  (doseq [ns ['com.github.sikt-no.clj-jwt]]
     (let [res       (exercise-ns ns)
           successes (or (:check-passed res) 0)
           fails     (+ (or (:check-failed res) 0)

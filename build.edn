@@ -1,6 +1,6 @@
 {:lib com.github.sikt-no/clj-jwt
 
- :version "0.4.{{git/commit-count}}"
+ :version "0.5.{{git/commit-count}}"
 
  :github-actions? true
 
