@@ -4,6 +4,8 @@
 
 A Clojure library to handle validation of JWTs and signing claims using JSON Web Keys.
 
+[![Clojars Project](https://img.shields.io/clojars/v/com.github.sikt-no/clj-jwt.svg?include_prereleases)](https://clojars.org/com.github.sikt-no/clj-jwt)
+
 ```clojure
 com.github.sikt-no/clj-jwt {:git/tag "0.5.73" :git/sha "279ccc2"}
 ; or:
