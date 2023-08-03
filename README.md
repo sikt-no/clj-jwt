@@ -162,3 +162,4 @@ Copyright © 2018—2021 NSD - NORSK SENTER FOR FORSKNINGSDATA AS
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
     
+    
