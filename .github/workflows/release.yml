@@ -25,7 +25,10 @@ jobs:
       - name: deploy to clojars
         # NOTE: Specify ID to refer outputs from other steps
         id: deploy
-        run: clojure -T:build deploy
+        run: |
+          sed 's|com.github.sikt-no|no.nsd|g' src/com/github/sikt_no/clj_jwt.clj > src/no/nsd/clj_jwt.clj
+          sed -i '1s/^/;generated file, do not edit\n/' src/no/nsd/clj_jwt.clj
+          clojure -T:build deploy
         env:
           CLOJARS_PASSWORD: ${{secrets.CLOJARS_PASSWORD}}
           CLOJARS_USERNAME: ${{secrets.CLOJARS_USERNAME}}
@@ -43,6 +46,8 @@ jobs:
 
       - run: |
           clojure -T:build update-documents
+          sed 's|com.github.sikt-no|no.nsd|g' src/com/github/sikt_no/clj_jwt.clj > src/no/nsd/clj_jwt.clj
+          sed -i '1s/^/;generated file, do not edit\n/' src/no/nsd/clj_jwt.clj
           git diff
           git config --global user.email "github-actions@example.com"
           git config --global user.name "github-actions"
