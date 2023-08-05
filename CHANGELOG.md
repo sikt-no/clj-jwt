@@ -2,17 +2,15 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
-
-## [0.5.73] - 2023-08-03
-### Breaking change
-- Move namespace to `com.github.sikt-no.clj-jwt`.
 ### Changed
+- Added namespace `com.github.sikt-no.clj-jwt`. The old namespace `no.nsd.clj-jwt` will be kept identical
+to the new main namespace.
 - Bump dependencies, removing some CVEs.
-- Use [build.edn](https://github.com/liquidz/build.edn).
 - Use `major.minor.commit-count` version scheme.
 - Simplified running tests.
 ### Added
 - NVD check script.
+- Use [build.edn](https://github.com/liquidz/build.edn) for releasing.
 
 ## [0.4.7] - 2022-11-23
 ### Changed

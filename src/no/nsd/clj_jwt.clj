@@ -1,4 +1,3 @@
-;generated file, do not edit
 (ns no.nsd.clj-jwt
   (:require [buddy.core.keys :as keys]
             [buddy.core.keys.jwk.proto :as buddy-jwk]
