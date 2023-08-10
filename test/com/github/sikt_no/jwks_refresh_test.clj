@@ -78,3 +78,55 @@
                  (catch Throwable t
                    (ex-data t)))))
         (is (= 2 @req-count))))))
+
+(deftest rollover-test
+  (let [req-count (atom 0)
+        keystore (atom {})
+        kid (atom "kp-1")
+        jwks-endpoint (atom keypair-1)
+        handler (fn [_]
+                  (swap! req-count inc)
+                  {:status  200
+                   :headers {"content-type" "application/json"}
+                   :body    (cheshire/generate-string
+                              {:keys [(-> @jwks-endpoint
+                                          (.getPublic)
+                                          (buddy-keys/public-key->jwk)
+                                          (assoc :kid @kid))]})})]
+    (with-open [server (http/start-server handler {:socket-address (InetSocketAddress. "127.0.0.1" 0)})]
+      (let [url (str "http://127.0.0.1:" (netty/port server) "/.well-known/jwks.json")
+            signed-1 (buddy-jwt/sign {:sub "keypair-1"} (.getPrivate keypair-1) {:alg :rs256 :header {:kid "kp-1"}})
+            signed-2 (buddy-jwt/sign {:sub "keypair-2"} (.getPrivate keypair-2) {:alg :rs256 :header {:kid "kp-2"}})]
+        (is (= 0 @req-count))
+        (is (= {:sub "keypair-1"} (clj-jwt/unsign url signed-1 {:keystore keystore})))
+        (is (= 1 @req-count))
+
+        (reset! jwks-endpoint keypair-2)
+        (reset! kid "kp-2")
+        ; enough time has passed, verify that unsign will re-fetch the keys:
+        (let [old-ks @keystore]
+          (is (= {:sub "keypair-2"}
+                 (try
+                   (clj-jwt/unsign url signed-2 {:keystore keystore})
+                   (catch Throwable t
+                     (ex-data t)))))
+          (is (not= old-ks @keystore)))
+        (is (= 2 @req-count))
+
+        ; check that the old JWT still works,
+        ; i.e. we support rollover of keys in a case where the JWKS got new keys,
+        ; but does not necessarily still give out the old key.
+        ;
+        ; 4.5.  "kid" (Key ID) Parameter
+        ;
+        ;   The "kid" (key ID) parameter is used to match a specific key.  This
+        ;   is used, for instance, to choose among a set of keys within a JWK Set
+        ;   during key rollover. ...
+        ;
+        ; from https://datatracker.ietf.org/doc/html/rfc7517#section-4.5
+        (is (= {:sub "keypair-1"}
+               (try
+                 (clj-jwt/unsign url signed-1 {:keystore keystore})
+                 (catch Throwable t
+                   (ex-data t)))))
+        (is (= 2 @req-count))))))

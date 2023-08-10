@@ -209,7 +209,7 @@
            (let [new-ks (atom {})
                  res (jwt/unsign token (fn [jwt-header] (resolve-key new-ks :public-key jwks-url jwt-header now-ms))
                                  (merge {:alg :rs256} opts))]
-             (swap! keystore (fn [old-ks] (merge old-ks @new-ks)))
+             (swap! keystore (fn [old-ks] (merge-with merge old-ks @new-ks)))
              res)
            (throw t)))))))
 

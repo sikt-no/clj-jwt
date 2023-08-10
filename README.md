@@ -88,6 +88,14 @@ the other clojure project's `deps.edn` file:
 Go to [https://github.com/sikt-no/clj-jwt/actions/workflows/release.yml](https://github.com/sikt-no/clj-jwt/actions/workflows/release.yml)
 and press `Run workflow`.
 
+## Further reading
+
+[RFC 7519 - JSON Web Token (JWT)](https://datatracker.ietf.org/doc/html/rfc7519)
+
+[RFC 8725 - JSON Web Token Best Current Practices](https://datatracker.ietf.org/doc/html/rfc8725)
+
+[RFC 7517 - JSON Web Key (JWK)](https://datatracker.ietf.org/doc/html/rfc7517)
+
 ## License
 
 Copyright © 2022 Sikt - Norwegian Agency for Shared Services in Education and Research
