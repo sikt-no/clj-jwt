@@ -2,6 +2,7 @@
   (:require [buddy.core.keys :as keys]
             [buddy.core.keys.jwk.proto :as buddy-jwk]
             [buddy.sign.jwt :as jwt]
+            [buddy.sign.util :as util]
             [clojure.algo.generic.functor :refer [fmap]]
             [clojure.data.json :as json]
             [clojure.java.io :refer [resource]]
@@ -135,20 +136,23 @@
 (defn- resolve-key
   "Returns java.security.Key given key-fn, jwks-url and :key-type in jwt-header.
   If no key is found refreshes"
-  [keystore key-type jwks-url jwt-header]
-  (log/debug "Resolving key" jwt-header "from jwk cache for" jwks-url)
-  (let [key-fn (fn [] (get-in @keystore [jwks-url (:kid jwt-header) key-type]))]
-    (if-let [key (key-fn)]
-      key
-      (do (log/debug "Fetch and resolve key" jwt-header "from" jwks-url)
-          (when-let [new-keys (fetch-keys jwks-url)]
-            (swap! keystore #(update % jwks-url merge new-keys)))
-          (if-let [key (key-fn)]
-            key
-            (do
-              (log/error "Could not locate public key corresponding to jwt header's kid:" (:kid jwt-header) "for url:" jwks-url)
-              (throw (ex-info (str "Could not locate key corresponding to jwt header's kid: " (:kid jwt-header) " for url: " jwks-url)
-                              {:type :validation :cause :unknown-key}))))))))
+  ([keystore key-type jwks-url jwt-header]
+   (resolve-key keystore key-type jwks-url jwt-header (System/currentTimeMillis)))
+  ([keystore key-type jwks-url jwt-header now-ms]
+   (log/debug "Resolving key" jwt-header "from jwk cache for" jwks-url)
+   (let [key-fn (fn [] (get-in @keystore [jwks-url (:kid jwt-header) key-type]))]
+     (if-let [key (key-fn)]
+       key
+       (do (log/debug "Fetch and resolve key" jwt-header "from" jwks-url)
+           (when-let [new-keys (some-> (fetch-keys jwks-url)
+                                       (assoc :refreshed-at-ms now-ms))]
+             (swap! keystore #(update % jwks-url merge new-keys)))
+           (if-let [key (key-fn)]
+             key
+             (do
+               (log/error "Could not locate public key corresponding to jwt header's kid:" (:kid jwt-header) "for url:" jwks-url)
+               (throw (ex-info (str "Could not locate key corresponding to jwt header's kid: " (:kid jwt-header) " for url: " jwks-url)
+                               {:type :validation :cause :unknown-key})))))))))
 
 
 (s/fdef resolve-public-key
@@ -187,16 +191,27 @@
   ([jwks-url token]
    (unsign jwks-url token {}))
   ([jwks-url token {:keys [keystore now-ms allow-refresh-after-ms]
-                    :or   {keystore keystore-atom
-                           now-ms (System/currentTimeMillis)
-                           allow-refresh-after-ms 60000} ; one minute
+                    :or   {keystore               keystore-atom
+                           now-ms                 (System/currentTimeMillis)
+                           allow-refresh-after-ms 60000}    ; one minute
                     :as   opts}]
    (assert (s/valid? ::jwks-url jwks-url) (str "jwks-url must conform to ::jwks-url. Was given: " jwks-url))
    (let [token (remove-bearer token)]
      (assert (s/valid? ::jwt token) "token must conform to ::jwt")
-     (jwt/unsign token (fn [jwt-header]
-                         (resolve-key keystore :public-key jwks-url jwt-header))
-                 (merge {:alg :rs256} opts)))))
+     (try
+       (jwt/unsign token (fn [jwt-header] (resolve-key keystore :public-key jwks-url jwt-header now-ms))
+                   (merge {:alg :rs256} opts))
+       (catch Throwable t
+         (if (let [ks @keystore
+                   past-refresh-ms (get-in ks [jwks-url :refreshed-at-ms] now-ms)
+                   diff-ms (- now-ms past-refresh-ms)]
+               (> diff-ms allow-refresh-after-ms))
+           (let [new-ks (atom {})
+                 res (jwt/unsign token (fn [jwt-header] (resolve-key new-ks :public-key jwks-url jwt-header now-ms))
+                                 (merge {:alg :rs256} opts))]
+             (swap! keystore (fn [old-ks] (merge old-ks @new-ks)))
+             res)
+           (throw t)))))))
 
 (defn scopes
   "Given the claims from unsign returns the jwt scope as a set of strings.

@@ -30,16 +30,16 @@
                        (.build)
                        (.keyPair)))
 
-(deftest refresh
+(deftest refresh-test
   (let [req-count (atom 0)
         keystore (atom {})
-        keypair (atom keypair-1)
+        jwks-endpoint (atom keypair-1)
         handler (fn [_]
                   (swap! req-count inc)
                   {:status  200
                    :headers {"content-type" "application/json"}
                    :body    (cheshire/generate-string
-                              {:keys [(-> @keypair
+                              {:keys [(-> @jwks-endpoint
                                           (.getPublic)
                                           (buddy-keys/public-key->jwk)
                                           (assoc :kid "test-key"))]})})]
@@ -48,19 +48,33 @@
             signed-1 (buddy-jwt/sign {:sub "keypair-1"} (.getPrivate keypair-1) {:alg :rs256 :header {:kid "test-key"}})
             signed-2 (buddy-jwt/sign {:sub "keypair-2"} (.getPrivate keypair-2) {:alg :rs256 :header {:kid "test-key"}})]
         (is (= 0 @req-count))
-        (clj-jwt/unsign url signed-1 {:keystore keystore})
+        (is (= {:sub "keypair-1"} (clj-jwt/unsign url signed-1 {:keystore keystore})))
         (is (= 1 @req-count))
+
+        ; endpoint has changed, but not enough time has passed to allow for a re-fetch:
+        (reset! jwks-endpoint keypair-2)
         (is (= {:type :validation, :cause :signature}
                (try
                  (clj-jwt/unsign url signed-2 {:keystore keystore})
                  (catch Throwable t
                    (ex-data t)))))
         (is (= 1 @req-count))
-        (reset! keypair keypair-2)
 
-        (is (not= {:type :validation, :cause :signature}
-                  (try
-                    (clj-jwt/unsign url signed-2 {:keystore keystore :now-ms (+ 60001 (System/currentTimeMillis))})
-                    (catch Throwable t
-                      (ex-data t)))))
+        ; enough time has passed, verify that unsign will re-fetch the keys:
+        (let [old-ks @keystore]
+          (is (= {:sub "keypair-2"}
+                 (try
+                   (clj-jwt/unsign url signed-2 {:keystore keystore :now-ms (+ 60001 (System/currentTimeMillis))})
+                   (catch Throwable t
+                     (ex-data t)))))
+          (is (not= old-ks @keystore)))
+        (is (= 2 @req-count))
+
+        ; another check to see that the new keystore is indeed persisted,
+        ; and that keys are not re-fetched again:
+        (is (= {:sub "keypair-2"}
+               (try
+                 (clj-jwt/unsign url signed-2 {:keystore keystore :now-ms (+ 60001 (System/currentTimeMillis))})
+                 (catch Throwable t
+                   (ex-data t)))))
         (is (= 2 @req-count))))))
