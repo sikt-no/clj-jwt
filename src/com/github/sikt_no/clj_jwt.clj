@@ -128,14 +128,14 @@
 ;; Atom to hold the public and private keys used for signature validation in memory for
 ;; caching purposes. The atom holds a clojure map with kid -> key pairs. Each key is a
 ;; clojure map containing a :public-key and optionally a :private-key.
-(defonce keystore
+(defonce keystore-atom
          (atom {}))
 
 
 (defn- resolve-key
   "Returns java.security.Key given key-fn, jwks-url and :key-type in jwt-header.
   If no key is found refreshes"
-  [key-type jwks-url jwt-header]
+  [keystore key-type jwks-url jwt-header]
   (log/debug "Resolving key" jwt-header "from jwk cache for" jwks-url)
   (let [key-fn (fn [] (get-in @keystore [jwks-url (:kid jwt-header) key-type]))]
     (if-let [key (key-fn)]
@@ -159,7 +159,7 @@
 (def resolve-public-key
   "Returns java.security.PublicKey given jwks-url and :kid in jwt-header.
   If no key is found refreshes"
-  (partial resolve-key :public-key))
+  (partial resolve-key keystore-atom :public-key))
 
 
 (s/fdef resolve-private-key
@@ -168,7 +168,7 @@
         :ret ::private-key)
 
 (def resolve-private-key
-  (partial resolve-key :private-key))
+  (partial resolve-key keystore-atom :private-key))
 
 
 (s/fdef unsign
@@ -186,11 +186,17 @@
   of the given json web token. Opts are the same as buddy-sign.jwt/unsign."
   ([jwks-url token]
    (unsign jwks-url token {}))
-  ([jwks-url token opts]
+  ([jwks-url token {:keys [keystore now-ms allow-refresh-after-ms]
+                    :or   {keystore keystore-atom
+                           now-ms (System/currentTimeMillis)
+                           allow-refresh-after-ms 60000} ; one minute
+                    :as   opts}]
    (assert (s/valid? ::jwks-url jwks-url) (str "jwks-url must conform to ::jwks-url. Was given: " jwks-url))
    (let [token (remove-bearer token)]
      (assert (s/valid? ::jwt token) "token must conform to ::jwt")
-     (jwt/unsign token (partial resolve-public-key jwks-url) (merge {:alg :rs256} opts)))))
+     (jwt/unsign token (fn [jwt-header]
+                         (resolve-key keystore :public-key jwks-url jwt-header))
+                 (merge {:alg :rs256} opts)))))
 
 (defn scopes
   "Given the claims from unsign returns the jwt scope as a set of strings.
