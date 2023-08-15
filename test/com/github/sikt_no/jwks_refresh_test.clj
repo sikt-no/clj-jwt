@@ -86,16 +86,39 @@
         (is (= {:sub "keypair-1"} (clj-jwt/unsign url signed-1 {:keystore keystore})))
         (is (= 2 @req-count))
 
-        (reset! jwks-endpoint keypair-3)
         (is (not= {:sub "keypair-3"}
                   (try
                     (clj-jwt/unsign url signed-3 {:keystore keystore :now-ms (+ 60001 (System/currentTimeMillis))})
                     (catch Exception e
                       (ex-data e)))))
+        (is (= 2 @req-count))
 
+        (is (not= {:sub "keypair-3"}
+                  (try
+                    (clj-jwt/unsign url signed-3 {:keystore keystore :now-ms (+ 120000 (System/currentTimeMillis))})
+                    (catch Exception e
+                      (ex-data e)))))
+        (is (= 3 @req-count))
+
+        ; Verify we cannot DDOS by giving wrong key
+        (is (not= {:sub "keypair-3"}
+                  (try
+                    (clj-jwt/unsign url signed-3 {:keystore keystore :now-ms (+ 120000 (System/currentTimeMillis))})
+                    (catch Exception e
+                      (ex-data e)))))
+        (is (= 3 @req-count))
+
+        (is (not= {:sub "keypair-3"}
+                  (try
+                    (clj-jwt/unsign url signed-3 {:keystore keystore :now-ms (+ 60000 120000 (System/currentTimeMillis))})
+                    (catch Exception e
+                      (ex-data e)))))
+        (is (= 4 @req-count))
+
+        (reset! jwks-endpoint keypair-3)
         (is (= {:sub "keypair-3"}
-               (clj-jwt/unsign url signed-3 {:keystore keystore :now-ms (+ 121000 (System/currentTimeMillis))})))
-        (is (= 3 @req-count))))))
+               (clj-jwt/unsign url signed-3 {:keystore keystore :now-ms (+ 120000 120000 (System/currentTimeMillis))})))
+        (is (= 5 @req-count))))))
 
 (deftest proper-rollover-test
   (let [req-count (atom 0)
