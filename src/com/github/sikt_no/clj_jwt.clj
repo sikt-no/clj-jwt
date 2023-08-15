@@ -65,7 +65,7 @@
 
 (s/def ::private-key keys/private-key?)
 
-(s/def ::key (s/keys :req-un [::public-key]
+(s/def ::key (s/keys :req-un [#{::public-key}]
                      :opt-un [::private-key]))
 
 (s/def ::key-store (s/map-of ::kid
@@ -175,10 +175,11 @@
                      :jwt-header ::jwt-header)
         :ret ::public-key)
 
-(def resolve-public-key
+(defn resolve-public-key
   "Returns java.security.PublicKey given jwks-url and :kid in jwt-header.
   If no key is found refreshes"
-  (partial resolve-key keystore-atom :public-key))
+  [jwks-url jwt-header]
+  (first (resolve-key keystore-atom :public-key jwks-url jwt-header)))
 
 
 (s/fdef resolve-private-key
