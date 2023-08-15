@@ -3,9 +3,11 @@
   (:require [buddy.core.keys :as keys]
             [buddy.core.keys.jwk.proto :as buddy-jwk]
             [buddy.sign.jwt :as jwt]
+            [buddy.sign.util :as util]
             [clojure.algo.generic.functor :refer [fmap]]
             [clojure.data.json :as json]
             [clojure.java.io :refer [resource]]
+            [clojure.set :as set]
             [clojure.spec.gen.alpha :as gen]
             [clojure.spec.alpha :as s]
             [clojure.tools.logging :as log]
@@ -64,7 +66,7 @@
 
 (s/def ::private-key keys/private-key?)
 
-(s/def ::key (s/keys :req-un [::public-key]
+(s/def ::key (s/keys :req-un [#{::public-key}]
                      :opt-un [::private-key]))
 
 (s/def ::key-store (s/map-of ::kid
@@ -102,7 +104,7 @@
        (group-by :kid)
        (fmap first)
        (fmap #(assoc {}
-                :public-key (buddy-jwk/jwk->public-key %)
+                :public-key #{(buddy-jwk/jwk->public-key %)}
                 :private-key (buddy-jwk/jwk->private-key %)))))
 
 (s/fdef fetch-keys
@@ -122,34 +124,51 @@
             slurp
             (#(json/read-str % :key-fn keyword))
             jwks-edn->keys)
-       (catch Exception e (do (log/error "Could not fetch jwks keys")
+       (catch Throwable t (do (log/error t "Could not fetch jwks keys")
                               false))))
 
 
 ;; Atom to hold the public and private keys used for signature validation in memory for
 ;; caching purposes. The atom holds a clojure map with kid -> key pairs. Each key is a
 ;; clojure map containing a :public-key and optionally a :private-key.
-(defonce keystore
+(defonce keystore-atom
          (atom {}))
 
+(defn- update-jwks-entry [now-ms old-keyset new-keyset]
+  (let [res (with-meta
+              (merge-with (fn [old-kidmap new-kidmap]
+                            (merge {:public-key (set/union (get old-kidmap :public-key #{})
+                                                           (get new-kidmap :public-key #{}))}
+                                   (when-let [privkey (get new-kidmap :private-key
+                                                           (get old-kidmap :private-key))]
+                                     {:private-key privkey})))
+                          old-keyset new-keyset)
+              {:refreshed-at-ms now-ms})]
+    res))
+
+(defn- update-keystore [old-ks new-ks now-ms]
+  (merge-with (partial update-jwks-entry now-ms) old-ks new-ks))
 
 (defn- resolve-key
-  "Returns java.security.Key given key-fn, jwks-url and :key-type in jwt-header.
+  "Returns java.security.Key(s) given key-fn, jwks-url and :key-type in jwt-header.
   If no key is found refreshes"
-  [key-type jwks-url jwt-header]
-  (log/debug "Resolving key" jwt-header "from jwk cache for" jwks-url)
-  (let [key-fn (fn [] (get-in @keystore [jwks-url (:kid jwt-header) key-type]))]
-    (if-let [key (key-fn)]
-      key
-      (do (log/debug "Fetch and resolve key" jwt-header "from" jwks-url)
-          (when-let [new-keys (fetch-keys jwks-url)]
-            (swap! keystore #(update % jwks-url merge new-keys)))
-          (if-let [key (key-fn)]
-            key
-            (do
-              (log/error "Could not locate public key corresponding to jwt header's kid:" (:kid jwt-header) "for url:" jwks-url)
-              (throw (ex-info (str "Could not locate key corresponding to jwt header's kid: " (:kid jwt-header) " for url: " jwks-url)
-                              {:type :validation :cause :unknown-key}))))))))
+  ([keystore key-type jwks-url jwt-header]
+   (resolve-key keystore key-type jwks-url jwt-header (System/currentTimeMillis)))
+  ([keystore key-type jwks-url jwt-header now-ms]
+   (log/debug "Resolving key" jwt-header "from jwk cache for" jwks-url)
+   (let [key-fn (fn [] (get-in @keystore [jwks-url (:kid jwt-header) key-type]))]
+     (if-let [key (key-fn)]
+       key
+       (do (log/debug "Fetch and resolve key" jwt-header "from" jwks-url)
+           (when-let [new-keys (with-meta (fetch-keys jwks-url)
+                                          {:refreshed-at-ms now-ms})]
+             (swap! keystore update-keystore {jwks-url new-keys} now-ms))
+           (if-let [key (key-fn)]
+             key
+             (do
+               (log/error "Could not locate public key corresponding to jwt header's kid:" (:kid jwt-header) "for url:" jwks-url)
+               (throw (ex-info (str "Could not locate key corresponding to jwt header's kid: " (:kid jwt-header) " for url: " jwks-url)
+                               {:type :validation :cause :unknown-key})))))))))
 
 
 (s/fdef resolve-public-key
@@ -157,10 +176,11 @@
                      :jwt-header ::jwt-header)
         :ret ::public-key)
 
-(def resolve-public-key
+(defn resolve-public-key
   "Returns java.security.PublicKey given jwks-url and :kid in jwt-header.
   If no key is found refreshes"
-  (partial resolve-key :public-key))
+  [jwks-url jwt-header]
+  (first (resolve-key keystore-atom :public-key jwks-url jwt-header)))
 
 
 (s/fdef resolve-private-key
@@ -169,7 +189,7 @@
         :ret ::private-key)
 
 (def resolve-private-key
-  (partial resolve-key :private-key))
+  (partial resolve-key keystore-atom :private-key))
 
 
 (s/fdef unsign
@@ -182,16 +202,57 @@
     (subs token (count "Bearer "))
     token))
 
+(defn- try-unsign [token opts key-set throw?]
+  (let [res (reduce
+              (fn [_ key-entry]
+                (try
+                  (reduced (jwt/unsign token key-entry (merge {:alg :rs256} opts)))
+                  (catch Throwable t t)))
+              nil
+              key-set)]
+    (if (and throw? (instance? Throwable res))
+      (throw res)
+      res)))
+
 (defn unsign
   "Given jwks-url, token, and optionally opts validates and returns the claims
   of the given json web token. Opts are the same as buddy-sign.jwt/unsign."
   ([jwks-url token]
    (unsign jwks-url token {}))
-  ([jwks-url token opts]
+  ([jwks-url token {:keys [keystore now-ms allow-refresh-after-ms]
+                    :or   {keystore               keystore-atom
+                           now-ms                 (System/currentTimeMillis)
+                           allow-refresh-after-ms 60000}
+                    :as   opts}]
    (assert (s/valid? ::jwks-url jwks-url) (str "jwks-url must conform to ::jwks-url. Was given: " jwks-url))
    (let [token (remove-bearer token)]
      (assert (s/valid? ::jwt token) "token must conform to ::jwt")
-     (jwt/unsign token (partial resolve-public-key jwks-url) (merge {:alg :rs256} opts)))))
+     (let [[header _payload _signature] (some-> token (str/split #"\." 3))
+           header-data (util/parse-jose-header header)
+           key-set (resolve-key keystore :public-key jwks-url header-data now-ms)
+           ks-org @keystore
+           res (try-unsign token opts key-set false)
+           past-refresh-ms (some-> (get ks-org jwks-url)
+                                   (meta)
+                                   (get :refreshed-at-ms now-ms))
+           diff-ms (- now-ms past-refresh-ms)]
+       (cond
+         (and
+           (instance? Throwable res)
+           (> diff-ms allow-refresh-after-ms))
+         (let [new-ks (atom {})
+               new-key-set (resolve-key new-ks :public-key jwks-url header-data now-ms)]
+           (if (not= new-key-set key-set)
+             (let [res (try-unsign token opts new-key-set true)]
+               (swap! keystore update-keystore @new-ks now-ms)
+               res)
+             (throw res)))
+
+         (instance? Throwable res)
+         (throw res)
+
+         :else
+         res)))))
 
 (defn scopes
   "Given the claims from unsign returns the jwt scope as a set of strings.

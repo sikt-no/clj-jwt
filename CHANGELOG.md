@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
+
+## [0.5.89] - 2023-08-15
 ### Added
 - Support automatic refresh of JWKS endpoint when using `unsign`. Maximum refresh rate is once per minute per URL. This feature supports improper rollover of keys, i.e. where the new key has the same `:kid` as previous key (#1).
 
