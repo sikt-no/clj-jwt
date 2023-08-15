@@ -149,7 +149,7 @@
   (merge-with (partial update-jwks-entry now-ms) old-ks new-ks))
 
 (defn- resolve-key
-  "Returns java.security.Key given key-fn, jwks-url and :key-type in jwt-header.
+  "Returns java.security.Key(s) given key-fn, jwks-url and :key-type in jwt-header.
   If no key is found refreshes"
   ([keystore key-type jwks-url jwt-header]
    (resolve-key keystore key-type jwks-url jwt-header (System/currentTimeMillis)))
