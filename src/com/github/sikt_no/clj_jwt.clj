@@ -6,6 +6,7 @@
             [clojure.algo.generic.functor :refer [fmap]]
             [clojure.data.json :as json]
             [clojure.java.io :refer [resource]]
+            [clojure.set :as set]
             [clojure.spec.gen.alpha :as gen]
             [clojure.spec.alpha :as s]
             [clojure.tools.logging :as log]
@@ -102,7 +103,7 @@
        (group-by :kid)
        (fmap first)
        (fmap #(assoc {}
-                :public-key (buddy-jwk/jwk->public-key %)
+                :public-key #{(buddy-jwk/jwk->public-key %)}
                 :private-key (buddy-jwk/jwk->private-key %)))))
 
 (s/fdef fetch-keys
@@ -122,7 +123,7 @@
             slurp
             (#(json/read-str % :key-fn keyword))
             jwks-edn->keys)
-       (catch Exception e (do (log/error "Could not fetch jwks keys")
+       (catch Throwable t (do (log/error t "Could not fetch jwks keys")
                               false))))
 
 
@@ -132,6 +133,20 @@
 (defonce keystore-atom
          (atom {}))
 
+(defn- update-jwks-entry [now-ms old-keyset new-keyset]
+  (let [res (with-meta
+              (merge-with (fn [old-kidmap new-kidmap]
+                            (merge {:public-key (set/union (get old-kidmap :public-key #{})
+                                                           (get new-kidmap :public-key #{}))}
+                                   (when-let [privkey (get new-kidmap :private-key
+                                                           (get old-kidmap :private-key))]
+                                     {:private-key privkey})))
+                          old-keyset new-keyset)
+              {:refreshed-at-ms now-ms})]
+    res))
+
+(defn- update-keystore [old-ks new-ks now-ms]
+  (merge-with (partial update-jwks-entry now-ms) old-ks new-ks))
 
 (defn- resolve-key
   "Returns java.security.Key given key-fn, jwks-url and :key-type in jwt-header.
@@ -144,9 +159,9 @@
      (if-let [key (key-fn)]
        key
        (do (log/debug "Fetch and resolve key" jwt-header "from" jwks-url)
-           (when-let [new-keys (some-> (fetch-keys jwks-url)
-                                       (assoc :refreshed-at-ms now-ms))]
-             (swap! keystore #(update % jwks-url merge new-keys)))
+           (when-let [new-keys (with-meta (fetch-keys jwks-url)
+                                          {:refreshed-at-ms now-ms})]
+             (swap! keystore update-keystore {jwks-url new-keys} now-ms))
            (if-let [key (key-fn)]
              key
              (do
@@ -185,6 +200,18 @@
     (subs token (count "Bearer "))
     token))
 
+(defn- try-unsign [token opts key-set throw?]
+  (let [res (reduce
+              (fn [_ key-entry]
+                (try
+                  (reduced (jwt/unsign token key-entry (merge {:alg :rs256} opts)))
+                  (catch Throwable t t)))
+              nil
+              key-set)]
+    (if (and throw? (instance? Throwable res))
+      (throw res)
+      res)))
+
 (defn unsign
   "Given jwks-url, token, and optionally opts validates and returns the claims
   of the given json web token. Opts are the same as buddy-sign.jwt/unsign."
@@ -193,25 +220,37 @@
   ([jwks-url token {:keys [keystore now-ms allow-refresh-after-ms]
                     :or   {keystore               keystore-atom
                            now-ms                 (System/currentTimeMillis)
-                           allow-refresh-after-ms 60000}    ; one minute
+                           allow-refresh-after-ms 60000}
                     :as   opts}]
    (assert (s/valid? ::jwks-url jwks-url) (str "jwks-url must conform to ::jwks-url. Was given: " jwks-url))
    (let [token (remove-bearer token)]
      (assert (s/valid? ::jwt token) "token must conform to ::jwt")
-     (try
-       (jwt/unsign token (fn [jwt-header] (resolve-key keystore :public-key jwks-url jwt-header now-ms))
-                   (merge {:alg :rs256} opts))
-       (catch Throwable t
-         (if (let [ks @keystore
-                   past-refresh-ms (get-in ks [jwks-url :refreshed-at-ms] now-ms)
-                   diff-ms (- now-ms past-refresh-ms)]
-               (> diff-ms allow-refresh-after-ms))
-           (let [new-ks (atom {})
-                 res (jwt/unsign token (fn [jwt-header] (resolve-key new-ks :public-key jwks-url jwt-header now-ms))
-                                 (merge {:alg :rs256} opts))]
-             (swap! keystore (fn [old-ks] (merge-with merge old-ks @new-ks)))
-             res)
-           (throw t)))))))
+     (let [[header _payload _signature] (some-> token (str/split #"\." 3))
+           header-data (util/parse-jose-header header)
+           key-set (resolve-key keystore :public-key jwks-url header-data now-ms)
+           ks-org @keystore
+           res (try-unsign token opts key-set false)
+           past-refresh-ms (some-> (get ks-org jwks-url)
+                                   (meta)
+                                   (get :refreshed-at-ms now-ms))
+           diff-ms (- now-ms past-refresh-ms)]
+       (cond
+         (and
+           (instance? Throwable res)
+           (> diff-ms allow-refresh-after-ms))
+         (let [new-ks (atom {})
+               new-key-set (resolve-key new-ks :public-key jwks-url header-data now-ms)]
+           (if (not= new-key-set key-set)
+             (let [res (try-unsign token opts new-key-set true)]
+               (swap! keystore update-keystore @new-ks now-ms)
+               res)
+             (throw res)))
+
+         (instance? Throwable res)
+         (throw res)
+
+         :else
+         res)))))
 
 (defn scopes
   "Given the claims from unsign returns the jwt scope as a set of strings.

@@ -30,7 +30,14 @@
                        (.build)
                        (.keyPair)))
 
-(deftest refresh-test
+(defonce keypair-3 (-> (HeldCertificate$Builder.)
+                       (.rsa2048)
+                       (.certificateAuthority 0)
+                       (.duration 1000 TimeUnit/DAYS)
+                       (.build)
+                       (.keyPair)))
+
+(deftest improper-rollover-test
   (let [req-count (atom 0)
         keystore (atom {})
         jwks-endpoint (atom keypair-1)
@@ -46,7 +53,8 @@
     (with-open [server (http/start-server handler {:socket-address (InetSocketAddress. "127.0.0.1" 0)})]
       (let [url (str "http://127.0.0.1:" (netty/port server) "/.well-known/jwks.json")
             signed-1 (buddy-jwt/sign {:sub "keypair-1"} (.getPrivate keypair-1) {:alg :rs256 :header {:kid "test-key"}})
-            signed-2 (buddy-jwt/sign {:sub "keypair-2"} (.getPrivate keypair-2) {:alg :rs256 :header {:kid "test-key"}})]
+            signed-2 (buddy-jwt/sign {:sub "keypair-2"} (.getPrivate keypair-2) {:alg :rs256 :header {:kid "test-key"}})
+            signed-3 (buddy-jwt/sign {:sub "keypair-3"} (.getPrivate keypair-3) {:alg :rs256 :header {:kid "test-key"}})]
         (is (= 0 @req-count))
         (is (= {:sub "keypair-1"} (clj-jwt/unsign url signed-1 {:keystore keystore})))
         (is (= 1 @req-count))
@@ -63,23 +71,33 @@
         ; enough time has passed, verify that unsign will re-fetch the keys:
         (let [old-ks @keystore]
           (is (= {:sub "keypair-2"}
-                 (try
-                   (clj-jwt/unsign url signed-2 {:keystore keystore :now-ms (+ 60001 (System/currentTimeMillis))})
-                   (catch Throwable t
-                     (ex-data t)))))
-          (is (not= old-ks @keystore)))
+                 (clj-jwt/unsign url signed-2 {:keystore keystore :now-ms (+ 60001 (System/currentTimeMillis))})))
+          (is (not= old-ks @keystore))
+          (is (= 2
+                 (count (get-in (first (vals @keystore))
+                                ["test-key" :public-key])))))
         (is (= 2 @req-count))
 
         ; another check to see that the new keystore is indeed persisted,
         ; and that keys are not re-fetched again:
         (is (= {:sub "keypair-2"}
-               (try
-                 (clj-jwt/unsign url signed-2 {:keystore keystore :now-ms (+ 60001 (System/currentTimeMillis))})
-                 (catch Throwable t
-                   (ex-data t)))))
-        (is (= 2 @req-count))))))
+               (clj-jwt/unsign url signed-2 {:keystore keystore :now-ms (+ 60001 (System/currentTimeMillis))})))
 
-(deftest rollover-test
+        (is (= {:sub "keypair-1"} (clj-jwt/unsign url signed-1 {:keystore keystore})))
+        (is (= 2 @req-count))
+
+        (reset! jwks-endpoint keypair-3)
+        (is (not= {:sub "keypair-3"}
+                  (try
+                    (clj-jwt/unsign url signed-3 {:keystore keystore :now-ms (+ 60001 (System/currentTimeMillis))})
+                    (catch Exception e
+                      (ex-data e)))))
+
+        (is (= {:sub "keypair-3"}
+               (clj-jwt/unsign url signed-3 {:keystore keystore :now-ms (+ 121000 (System/currentTimeMillis))})))
+        (is (= 3 @req-count))))))
+
+(deftest proper-rollover-test
   (let [req-count (atom 0)
         keystore (atom {})
         kid (atom "kp-1")
