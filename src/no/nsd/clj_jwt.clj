@@ -241,11 +241,10 @@
            (instance? Throwable res)
            (> diff-ms allow-refresh-after-ms))
          (let [new-ks (atom {})
-               new-key-set (resolve-key new-ks :public-key jwks-url header-data now-ms)]
+               new-key-set (resolve-key new-ks :public-key jwks-url header-data now-ms)
+               _ (swap! keystore update-keystore @new-ks now-ms)]
            (if (not= new-key-set key-set)
-             (let [res (try-unsign token opts new-key-set true)]
-               (swap! keystore update-keystore @new-ks now-ms)
-               res)
+             (try-unsign token opts new-key-set true)
              (throw res)))
 
          (instance? Throwable res)
