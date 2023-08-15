@@ -87,7 +87,8 @@ to the new main namespace.
 - Function `resolve-key` that fetches jwks keys and returns a PublicKey given the kid in the jwt header.
 - Function `unsign` which tries to validate a jwt given a jwks URL and a jwt.
 
-[Unreleased]: https://github.com/sikt-no/clj-jwt/compare/0.5.81...HEAD
+[Unreleased]: https://github.com/sikt-no/clj-jwt/compare/0.5.89...HEAD
+[0.5.89]: https://github.com/sikt-no/clj-jwt/compare/0.5.81...0.5.89
 [0.5.81]: https://github.com/sikt-no/clj-jwt/compare/0.4.7...0.5.81
 [0.4.7]: https://github.com/sikt-no/clj-jwt/compare/v0.4.6...0.4.7
 [v0.4.6]: https://github.com/sikt-no/clj-jwt/compare/v0.4.5...v0.4.6
