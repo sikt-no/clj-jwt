@@ -4,7 +4,7 @@ set -u
 
 # https://github.com/rm-hull/nvd-clojure
 
-clojure -Ttools install nvd-clojure/nvd-clojure '{:mvn/version "3.3.0"}' :as nvd
+clojure -Ttools install nvd-clojure/nvd-clojure '{:mvn/version "3.4.0"}' :as nvd
 
 clojure -J-Dclojure.main.report=stderr \
         -J-Dorg.slf4j.simpleLogger.log.org.apache.commons=error \
