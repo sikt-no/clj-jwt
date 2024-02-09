@@ -21,4 +21,7 @@
               :match-exactly "com.github.sikt-no/clj-jwt {:mvn/version"
               :action :replace
               :keep-indent? true
-              :text "com.github.sikt-no/clj-jwt {:mvn/version \"{{version}}\"}"}]}
+              :text "com.github.sikt-no/clj-jwt {:mvn/version \"{{version}}\"}"}]
+
+ :licenses [{:name "Eclipse Public License - v 2.0"
+             :url "https://www.eclipse.org/legal/epl-2.0/"}]}
