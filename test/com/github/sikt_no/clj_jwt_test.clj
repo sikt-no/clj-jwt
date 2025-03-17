@@ -4,6 +4,7 @@
             [buddy.core.keys :as buddy-keys]
             [taoensso.timbre :as timbre]
             [taoensso.timbre.tools.logging :as cljlog]
+            [clojure.spec.test.alpha :as stest]
             [clojure.java.io :refer [resource]]
             [clojure.test :refer [deftest testing is]])
   (:import (java.time ZoneId ZonedDateTime)))
@@ -12,6 +13,9 @@
 (def timbre-config  {:min-level :fatal})
 (timbre/merge-config! timbre-config)
 (cljlog/use-timbre)
+
+;; Validates that the :args spec is being invoked on all functions
+(stest/instrument)
 
 (def example-jwt "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")
 
