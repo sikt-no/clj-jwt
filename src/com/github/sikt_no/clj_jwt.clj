@@ -52,9 +52,11 @@
                                     #(s/gen #{(jwt/sign (gen/generate (s/gen ::claims))
                                                         "secret")}))))
 
-(s/def ::jwt-header (s/keys :req-un [::kid ::kty]))
+(s/def ::jwt-header (s/keys :req-un [::kid]
+                            :opt-un [::kty]))
 
-(s/def ::jwk (s/keys :req-un [::kty ::e ::n ::kid]))
+(s/def ::jwk (s/keys :req-un [::kty ::kid ::e ::n]
+                     :opt-un [::d]))
 
 (s/def ::public-key keys/public-key?)
 
@@ -72,7 +74,7 @@
                                         (try
                                           (slurp %)
                                           true
-                                          (catch Exception e
+                                          (catch Exception _
                                             false))))
                               ;; Always use local resources to avoid spamming actual servers
                               #(s/gen #{(resource "jwks.json")
@@ -85,7 +87,7 @@
                                         (resource "jwks-other.json")})))
 
 (s/fdef jwks-edn->keys
-        :args (s/cat :jwks (s/coll-of ::jwk :type vector?))
+        :args (s/cat :jwks (s/map-of #{:keys} (s/coll-of ::jwk :type vector?)))
         :ret ::key-store)
 
 (defn- jwks-edn->keys
@@ -98,15 +100,15 @@
        (group-by :kid)
        (fmap first)
        (fmap #(assoc {}
-                :public-key #{(buddy-jwk/jwk->public-key %)}
-                :private-key (buddy-jwk/jwk->private-key %)))))
+                       :public-key #{(buddy-jwk/jwk->public-key %)}
+                       :private-key (buddy-jwk/jwk->private-key %)))))
 
 (s/fdef fetch-keys
         :args (s/cat :jwks-url ::jwks-url)
         :ret (s/with-gen ::key-store
-                         #(s/gen #{(->> (resource "jwks.json")
+                         #(s/gen #{(-> (resource "jwks.json")
                                         slurp
-                                        ((fn [jwks-string] (json/read-str jwks-string :key-fn keyword)))
+                                        (json/read-str :key-fn keyword)
                                         jwks-edn->keys)})))
 
 (defn- fetch-keys
@@ -114,10 +116,10 @@
   Returns a map keyed on key-id where each value is a RSAPublicKey object"
   [jwks-url]
   (log/debug "Fetching keys from jwks-url" jwks-url)
-  (try (->> jwks-url
-            slurp
-            (#(json/read-str % :key-fn keyword))
-            jwks-edn->keys)
+  (try (-> jwks-url
+             slurp
+             (json/read-str :key-fn keyword)
+             jwks-edn->keys)
        (catch Throwable t (do (log/error t "Could not fetch jwks keys")
                               false))))
 
@@ -186,11 +188,6 @@
   (partial resolve-key keystore-atom :private-key))
 
 
-(s/fdef unsign
-        :args (s/cat :jwks-url ::jwks-url
-                     :token ::jwt)
-        :ret ::claims)
-
 (defn- remove-bearer [token]
   (if (and token (str/starts-with? (str/lower-case token) "bearer "))
     (subs token (count "Bearer "))
@@ -207,6 +204,18 @@
     (if (and throw? (instance? Throwable res))
       (throw res)
       res)))
+
+(s/def ::now-ms integer?)
+(s/def ::allow-refresh-after-ms integer?)
+
+(s/fdef unsign
+        :args (s/alt
+                :arity-2 (s/cat :jwks-url ::jwks-url
+                                :token ::jwt)
+                :arity-3 (s/cat :jwks-url ::jwks-url
+                                :token ::jwt
+                                :opts (s/keys :opt-un [::now-ms ::allow-refresh-after-ms])))
+        :ret ::claims)
 
 (defn unsign
   "Given jwks-url, token, and optionally opts validates and returns the claims
@@ -260,9 +269,14 @@
     #{}))
 
 (s/fdef sign
-        :args (s/cat :jwks-url ::jwks-url
-                     :kid ::kid
-                     :claims ::claims)
+        :args (s/alt
+                :arity-3 (s/cat :jwks-url ::jwks-url
+                                :kid ::kid
+                                :claims ::claims)
+                :arity-4 (s/cat :jwks-url ::jwks-url
+                                :kid ::kid
+                                :claims ::claims
+                                :options map?))
         :ret ::jwt)
 
 (defn sign
@@ -280,9 +294,18 @@
                "eyJraWQiOiJjQTdxRzJnQnc3QTdJQlc0TVpncFlvcHpSYUx5a3NDTDRoUWV4QVhuX2VFIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJmODA2NDYyNS0xYzZjLTQ0MTQtYmY5My01YTQ2NmY1NTliMmUiLCJpc3MiOiJodHRwczpcL1wvc3NvLXN0YWdlLm5zZC5ubyIsIm5hbWUiOiJJdmFyIFJlZnNkYWwiLCJleHAiOjE1Nzg0MzE1MjAsIm5vbmNlIjoiNlpWZ3BTNnk1SlVqN1I4ZUE3VFUiLCJqdGkiOiI1NTgyYzBjNC0wOGY0LTQ3MWEtOGVmOS01YzEwNTNjOTQyZWUiLCJlbWFpbCI6Ikl2YXIuUmVmc2RhbEBuc2Qubm8iLCJhdXRob3JpdGllcyI6W119.Lc51W1XBv4VakKOgENmR23oCa-2DQm0CrYwfoWkQ1Lq5UoaQYxvxLm6PV4WYqNddCgmX5dGAVq1KkThgu1ra-1IXjb8bTY7HVZ6b6if_NGAoBfcm7_zbZsCp6MNSqBXhIq4B5rPmasLMWzJi09xVBEYT34JuomsL3JsYhPjvu44pXZpYoIeo8yV2PC8QwxFShIte1g6l7bVDOI8jVuW9CIi_R5tncv-i2rovN41mYtpp-GHDMyMHx-Y7Gli0ANX9vnHIDjFYV6LqbcQlri0HP62Uvcm5C0BW1LBsDZqP2oOWStykTIDLDMfyEIKu7ng-q3JxBDC7ItujjQXZNThCCA")))
 
 (comment
-  (unsign "https://sso-stage.nsd.no/.well-known/jwks.json"
-          (str "Bearer "
-               "eyJraWQiOiJjQTdxRzJnQnc3QTdJQlc0TVpncFlvcHpSYUx5a3NDTDRoUWV4QVhuX2VFIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJmODA2NDYyNS0xYzZjLTQ0MTQtYmY5My01YTQ2NmY1NTliMmUiLCJpc3MiOiJodHRwczpcL1wvc3NvLXN0YWdlLm5zZC5ubyIsIm5hbWUiOiJJdmFyIFJlZnNkYWwiLCJleHAiOjE1Nzg0MzE1MjAsIm5vbmNlIjoiNlpWZ3BTNnk1SlVqN1I4ZUE3VFUiLCJqdGkiOiI1NTgyYzBjNC0wOGY0LTQ3MWEtOGVmOS01YzEwNTNjOTQyZWUiLCJlbWFpbCI6Ikl2YXIuUmVmc2RhbEBuc2Qubm8iLCJhdXRob3JpdGllcyI6W119.Lc51W1XBv4VakKOgENmR23oCa-2DQm0CrYwfoWkQ1Lq5UoaQYxvxLm6PV4WYqNddCgmX5dGAVq1KkThgu1ra-1IXjb8bTY7HVZ6b6if_NGAoBfcm7_zbZsCp6MNSqBXhIq4B5rPmasLMWzJi09xVBEYT34JuomsL3JsYhPjvu44pXZpYoIeo8yV2PC8QwxFShIte1g6l7bVDOI8jVuW9CIi_R5tncv-i2rovN41mYtpp-GHDMyMHx-Y7Gli0ANX9vnHIDjFYV6LqbcQlri0HP62Uvcm5C0BW1LBsDZqP2oOWStykTIDLDMfyEIKu7ng-q3JxBDC7ItujjQXZNThCCA")))
+  (require '[clojure.spec.test.alpha :as stest])
+  (stest/instrument `unsign)
+  (unsign (resource "jwks.json")
+          (sign (resource "jwks.json")
+                "test-key"
+                {:sub "jalla"})
+          {::allow-refresh-after-ms 1})
+
+  (stest/instrument `fetch-keys)
+  (stest/instrument `jwks-edn->keys)
+  (fetch-keys (resource "jwks.json"))
+  (fetch-keys "https://sso.nsd.no/.well-known/jwks.json"))
 
 (comment
   (unsign "https://sso.nsd.no/.well-known/jwks.json"
