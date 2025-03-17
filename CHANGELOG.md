@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file. This change
 ## [Unreleased]
 
 ## [0.5.102] - 2025-03-17
+- Fix specs for multi-arity functions and `jwks-edn->keys`
 
 ## [0.5.98] - 2024-02-09
 ### Changed
