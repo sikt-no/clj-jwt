@@ -3,6 +3,7 @@
             [buddy.core.keys.jwk.proto :as buddy-jwk]
             [buddy.sign.jwt :as jwt]
             [buddy.sign.util :as util]
+            [invetica.uri]
             [clojure.algo.generic.functor :refer [fmap]]
             [clojure.data.json :as json]
             [clojure.java.io :refer [resource]]
@@ -10,7 +11,6 @@
             [clojure.spec.gen.alpha :as gen]
             [clojure.spec.alpha :as s]
             [clojure.tools.logging :as log]
-            [invetica.uri :as uri]
             [clojure.string :as str]))
 
 (def jwtregex #"^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?$")
@@ -33,19 +33,14 @@
 
 ;; n is the public key component of a json web key
 (s/def ::n (s/with-gen string?
-                       #(s/gen #{;;valid:
-                                 "nZq9S6leC-8Se5-VlHcVZ0HVpQRwFNuZRp82WFddhMZUoEEKybuiym6uNh5kquNADbZcRw4yxJI3BBuWLoOz-YBjXlnxNqeQgr2E8LZ_AsT-6Yb6xdKrZ5acXaLAQsXwk53GHhUcFzOFu3u6BXVMknCY6jI6dxgOlSlWQV2nCjWTio_cTbDjsSSfIQ9jWcK9aCmw37omCZqIXlLwGA9fD4Ah8c4-QTfV7dZ7q_MQmrCqv88_eYAvg-lUlUQRnB9jGg53MWlitYGKW_aUr8oRn7nHm-gsXtL_bzWLxSSbkxiht52e4mcFNOXAqXVlocW1YJC3weRojI-CXJZ6218z6Q"
-                                 ;;invalid:
-                                 "xnmcbvjksdhfwiuerfsdjbsdkjfghwileugkhjbvnxdvjbvwiuerhslkdjbvvklwl4iuhjxcvxnmbvkwerjlfhiwuerhsjdkdfkjbvwe4riefslkv-dlsfkjhwpoiefhcvsdjkhvowpefwoeifhv_sdøflkhjwpeoifhsvøkl"})))
+                       #(s/gen #{"nZq9S6leC-8Se5-VlHcVZ0HVpQRwFNuZRp82WFddhMZUoEEKybuiym6uNh5kquNADbZcRw4yxJI3BBuWLoOz-YBjXlnxNqeQgr2E8LZ_AsT-6Yb6xdKrZ5acXaLAQsXwk53GHhUcFzOFu3u6BXVMknCY6jI6dxgOlSlWQV2nCjWTio_cTbDjsSSfIQ9jWcK9aCmw37omCZqIXlLwGA9fD4Ah8c4-QTfV7dZ7q_MQmrCqv88_eYAvg-lUlUQRnB9jGg53MWlitYGKW_aUr8oRn7nHm-gsXtL_bzWLxSSbkxiht52e4mcFNOXAqXVlocW1YJC3weRojI-CXJZ6218z6Q"})))
 
 ;; d is the private key component of a json web key
 (s/def ::d (s/with-gen string?
-                       #(s/gen #{;; Valid:
-                                 "PJrXSYLiYRebbJN4yHujP3LfoHzCEnVh3Jl2FN9KaWK260HmROQYZG-sPQ5Bwqg-bz1xbyE1dQfSsuBy-3LqHrqM-ilsvcNZqQEY9R52d9D6kXmTSNMHx-3jGQ0SeO0eIFMHffLHOomvECPEKZkSPB65rijLcKQKmbnA_OlF_EE"
-                                 ;; Invalid:
-                                 "xnmcbvjksdhfwiuerfsdjbsdkjfghwileugkhjbvnxdvjbvwiuerhslkdjbvvklwl4iuhjxcvxnmbvkwerjlfhiwuerhsjdkdfkjbvwe4riefslkv-dlsfkjhwpoiefhcvsdjkhvowpefwoeifhv_sdøflkhjwpeoifhsvøkl"})))
+                       #(s/gen #{"PJrXSYLiYRebbJN4yHujP3LfoHzCEnVh3Jl2FN9KaWK260HmROQYZG-sPQ5Bwqg-bz1xbyE1dQfSsuBy-3LqHrqM-ilsvcNZqQEY9R52d9D6kXmTSNMHx-3jGQ0SeO0eIFMHffLHOomvECPEKZkSPB65rijLcKQKmbnA_OlF_EE"})))
 
-(s/def ::e string?)
+(s/def ::e (s/with-gen string?
+                       #(s/gen #{"AQAB"})))
 
 (s/def ::claims (s/keys :opt-un [::exp
                                  ::scope

@@ -5,13 +5,11 @@
             [buddy.sign.jwt :as jwt]
             [clj-time.core :as time]
             [clojure.pprint :as pp]
-            [clojure.test :as t]
             [clojure.spec.alpha :as s]
             [clojure.spec.test.alpha :as stest]
-            [clojure.spec.gen.alpha :as gen]
             [taoensso.timbre :as timbre]
             [taoensso.timbre.tools.logging :as cljlog]
-            [clojure.term.colors :refer :all]))
+            [clojure.term.colors :refer [bold red green]]))
 
 ;; Effectively turn of logging in exercises
 (def timbre-config  {:min-level :fatal})
@@ -80,7 +78,7 @@ vLu9XxKFHYlWPccluz3pqDfaGNPO12968DAldwvAV6hTGgx7oMaNPu0UltgD/aaj
     (cond
       (nil? failure)                  :check-passed
       (::s/failure (ex-data failure)) :check-failed
-      :default                        :check-threw)))
+      :else                           :check-threw)))
 
 
 (defn summarizer
