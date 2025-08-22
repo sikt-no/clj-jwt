@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
+### Changed
+- Bump dependencies.
 
 ## [0.5.102] - 2025-03-17
 - Fix specs for multi-arity functions and `jwks-edn->keys`
