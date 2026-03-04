@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.5.107] - 2026-03-04
+
 ## [0.5.105] - 2025-08-22
 ### Changed
 - Bump dependencies.
