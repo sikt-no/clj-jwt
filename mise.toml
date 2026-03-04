@@ -1,0 +1,5 @@
+[tools]
+java = { version = "temurin-17.0.10+7", postinstall = "./scripts/install_clojure.sh" }
+
+[env]
+_.file = '.env'

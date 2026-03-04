@@ -14,3 +14,5 @@ pom.xml.asc
 .idea/
 *.iml
 .clj-kondo/
+.vibe/
+.env
