@@ -7,9 +7,9 @@ A Clojure library to handle validation of JWTs and signing claims using JSON Web
 [![Clojars Project](https://img.shields.io/clojars/v/com.github.sikt-no/clj-jwt.svg?include_prereleases)](https://clojars.org/com.github.sikt-no/clj-jwt)
 
 ```clojure
-com.github.sikt-no/clj-jwt {:git/tag "0.5.109" :git/sha "0543648"}
+com.github.sikt-no/clj-jwt {:git/tag "0.5.111" :git/sha "af13bbb"}
 ; or:
-com.github.sikt-no/clj-jwt {:mvn/version "0.5.109"}
+com.github.sikt-no/clj-jwt {:mvn/version "0.5.111"}
 ```
 
 clj-jwt wraps some of [Buddy's](https://funcool.github.io/buddy-sign/latest/) functions for validating JWTs and signing claims.
