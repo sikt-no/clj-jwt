@@ -26,6 +26,7 @@ jobs:
         # NOTE: Specify ID to refer outputs from other steps
         id: deploy
         run: |
+          clojure -M:clj-kondo
           sed 's|com.github.sikt-no|no.nsd|g' src/com/github/sikt_no/clj_jwt.clj > src/no/nsd/clj_jwt.clj
           sed -i '1s/^/;generated file, do not edit\n/' src/no/nsd/clj_jwt.clj
           clojure -T:build deploy

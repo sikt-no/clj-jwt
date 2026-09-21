@@ -13,6 +13,7 @@ pom.xml.asc
 .dir-locals.el
 .idea/
 *.iml
-.clj-kondo/
+.clj-kondo/.cache/
+.clj-kondo/imports/
 .vibe/
 .env
