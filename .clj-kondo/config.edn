@@ -1,2 +1,4 @@
 {:linters {:single-operand-comparison {:level :error}
-           :shadowed-var              {:level :warning}}}
+           :shadowed-var              {:level :warning}
+           :discouraged-var           {:level                   :error
+                                       clojure.core/read-string {:message "Use edn/read-string instead of read-string"}}}}
